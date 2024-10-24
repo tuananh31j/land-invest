@@ -195,7 +195,7 @@ const TreeDirectory = () => {
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
                     <Spin indicator={<LoadingOutlined style={{ fontSize: 32 }} spin />} />
                 </div>
-            ) : (
+            ) : treeData.length > 0 ? (
                 <Tree
                     showLine
                     treeData={treeData}
@@ -206,6 +206,8 @@ const TreeDirectory = () => {
                     autoExpandParent={autoExpandParent}
                     onExpand={onExpand}
                 />
+            ) : (
+                <p className="text-center">Dữ liệu đang cập nhật!</p>
             )}
         </>
     );

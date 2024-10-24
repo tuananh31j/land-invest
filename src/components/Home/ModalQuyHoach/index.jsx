@@ -139,6 +139,7 @@ const ModalQuyHoach = (props) => {
                             onChange={() => handleChangeIDQuyHoach(item.id)}
                         />
                     ))}
+                {listQuyHoach.length === 0 && <div className="no-data">Dữ liệu đang được biên soạn!</div>}
             </div>
         </Modal>
     );
