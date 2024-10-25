@@ -14,6 +14,8 @@ import { FaShareAlt } from 'react-icons/fa';
 import { message, Modal, Radio } from 'antd';
 import { fetchListInfo, fetQuyHoachByIdDistrict, searchLocation } from '../../services/api';
 import useGetParams from '../Hooks/useGetParams';
+import { setCurrentLocation } from '../../redux/search/searchSlice';
+import UserLocationMarker from '../UserLocationMarker';
 
 const customIcon = new L.Icon({
     iconUrl: require('../../assets/marker.png'),
@@ -35,12 +37,11 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
     const locationLink = useLocation();
     const dispatch = useDispatch();
     const listMarker = useSelector(selectFilteredMarkers);
-    const { coordinates } = useSelector((state) => state.searchQuery.searchResult);
-    console.log(coordinates, 'coordinates');
-
+    // const { coordinates } = useSelector((state) => state.searchQuery.searchResult);
     const [messageApi, contextHolder] = message.useMessage();
     const [quyhoachIds, setQuyhoachIds] = useState([]);
     const [position, setPosition] = useState([]);
+    const currentLocation = useSelector((state) => state.searchQuery.searchResult);
     useEffect(() => {
         const newQuyhoachIds =
             new URLSearchParams(locationLink.search)
@@ -60,21 +61,21 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
         vitri && vitri.length > 0 && setPosition(vitri.split(',').map(Number));
     }, [locationLink.search]);
 
-    useEffect(() => {
-        if (position.length === 2) {
-            const map = document.querySelector('.leaflet-container')?.leafletElement;
-            if (map) {
-                map.setView(position);
-            }
-        }
-    }, [position]);
+    // useEffect(() => {
+    //     if (position.length === 2) {
+    //         const map = document.querySelector('.leaflet-container')?.leafletElement;
+    //         if (map) {
+    //             map.setView(position);
+    //         }
+    //     }
+    // }, [position]);
     const MapEvents = () => {
         const map = useMapEvents({
             moveend: async (e) => {
                 const map = e.target;
                 const center = map.getCenter();
                 const zoom = map.getZoom();
-
+                dispatch(setCurrentLocation({ lat: center.lat, lon: center.lng }));
                 const searchParams = new URLSearchParams(locationLink.search);
                 searchParams.set('vitri', `${center.lat},${center.lng}`);
                 searchParams.set('zoom', `${zoom}`);
@@ -167,13 +168,13 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
         })();
     }, []);
 
-    useEffect(() => {
-        setPolygon(
-            coordinates && coordinates.length > 0 && Array.isArray(coordinates[0])
-                ? coordinates[0].map((coord) => [coord[1], coord[0]])
-                : null,
-        );
-    }, [coordinates]);
+    // useEffect(() => {
+    //     setPolygon(
+    //         coordinates && coordinates.length > 0 && Array.isArray(coordinates[0])
+    //             ? coordinates[0].map((coord) => [coord[1], coord[0]])
+    //             : null,
+    //     );
+    // }, [coordinates]);
 
     // Get plan id by district id
     useEffect(() => {
@@ -238,7 +239,7 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
                 });
             });
     };
-
+    console.log(currentLocation, 'position');
     return (
         <>
             {contextHolder}
@@ -264,8 +265,9 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
                 zoom={initialZoom}
                 maxZoom={30}
             >
+                <UserLocationMarker />
                 <MapEvents />
-                {position && position.length === 2 && <ResetCenterView lat={position[0]} lon={position[1]} />}
+                {currentLocation && <ResetCenterView lat={currentLocation.lat} lon={currentLocation.lon} />}
                 {/* {
                     kinhtuyen && vituyen && (
                        <>

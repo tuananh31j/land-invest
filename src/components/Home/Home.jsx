@@ -27,11 +27,15 @@ import 'leaflet/dist/leaflet.css';
 import Map from '../Map';
 import axios from 'axios';
 import processBoundingBox from '../../function/processBoundingBox';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import fetchProvinceName from '../../function/findProvince';
 import { fetchAllQuyHoach } from '../../services/api';
 import ModalQuyHoach from './ModalQuyHoach';
 import { AimOutlined } from '@ant-design/icons';
+import { useDispatch } from 'react-redux';
+import { backToMyLocation, resetToDefault } from '../../redux/search/searchSlice';
+import { MyLocation } from '@mui/icons-material';
+import useGetMyLocation from '../Hooks/useGetMyLocation';
 
 let DefaultIcon = L.icon({
     iconUrl: icon,
@@ -154,6 +158,16 @@ function Home() {
         setIsShowModalQuyhoach(false);
         setActiveItem(0);
     };
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const myLoca = useGetMyLocation();
+
+    const searchParams = new URLSearchParams(location.search);
+    const handleBackToMyLocation = () => {
+        dispatch(backToMyLocation({ lat: myLoca.lat, lon: myLoca.lng }));
+        searchParams.set('vitri', `${myLoca.lat},${myLoca.lng}`);
+        navigate({ search: searchParams.toString() });
+    };
     const buttonRef = useRef();
 
     const showNotification = (type, message, description) => {
@@ -240,7 +254,7 @@ function Home() {
                             <div className="nav-icon-arrow" onClick={handleShareClick}>
                                 <LuShare2 size={20} />
                             </div>
-                            <div className="nav-icon-arrow" onClick={handleShareClick}>
+                            <div className="nav-icon-arrow" onClick={handleBackToMyLocation}>
                                 <AimOutlined size={20} />
                             </div>
                         </div>

@@ -1,27 +1,33 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, current } from '@reduxjs/toolkit';
 
 const defaultLocation = {
-  displayName: 'Hà Nội, Vietnam',
-  lat: '21.0283334',
-  lon: '105.854041',
+    displayName: 'Hà Nội, Vietnam',
+    lat: '21.0283334',
+    lon: '105.854041',
 };
 
 const initialState = {
-  searchResult: defaultLocation,
+    searchResult: defaultLocation,
 };
 
 export const searchQuery = createSlice({
-  name: 'search',
-  initialState,
-  reducers: {
-    doSearch: (state, action) => {
-      state.searchResult = action.payload;
+    name: 'search',
+    initialState,
+    reducers: {
+        doSearch: (state, action) => {
+            state.searchResult = action.payload;
+        },
+        resetToDefault: (state) => {
+            state.searchResult = defaultLocation;
+        },
+        backToMyLocation: (state, action) => {
+            state.searchResult = action.payload;
+        },
+        setCurrentLocation: (state, action) => {
+            state.searchResult = action.payload;
+        },
     },
-    resetToDefault: (state) => {
-      state.searchResult = defaultLocation;
-    },
-  },
 });
 
-export const { doSearch, resetToDefault } = searchQuery.actions;
+export const { doSearch, resetToDefault, setCurrentLocation, backToMyLocation } = searchQuery.actions;
 export default searchQuery.reducer;

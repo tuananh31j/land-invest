@@ -95,9 +95,7 @@ const Header = () => {
 
     const handleLogOut = async () => {
         const { Username, Password } = user;
-        console.log('user', Username, Password);
         const res = await callLogout(Username, Password);
-        console.log('res', res);
         if (res) {
             dispatch(doLogoutAction());
             navigate('/');

@@ -47,6 +47,7 @@ function App() {
         {
             path: '/',
             element: <Layout />,
+            errorElement: <NotFound />,
             children: [
                 {
                     index: true,
