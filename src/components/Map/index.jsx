@@ -1,18 +1,8 @@
 import React, { memo, useEffect, useState } from 'react';
-import {
-    MapContainer,
-    TileLayer,
-    Marker,
-    Popup,
-    useMapEvents,
-    Polygon,
-    LayersControl,
-    Pane,
-} from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polygon, LayersControl, Pane } from 'react-leaflet';
 import L from 'leaflet';
 import DrawerView from '../Home/DrawerView';
-import fetchProvinceName, { getProvince } from '../../function/findProvince';
-import { findClosestDistrict } from '../../function/findClosestDistrict';
+import fetchProvinceName from '../../function/findProvince';
 import { useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import ResetCenterView from '../../function/resetCenterView';
@@ -21,9 +11,9 @@ import { formatToVND } from '../../function/formatToVND';
 import { setListMarker } from '../../redux/listMarker/listMarkerSllice';
 import useMapParams from '../../hooks/useMapParams';
 import { FaShareAlt } from 'react-icons/fa';
-import { message } from 'antd';
+import { message, Modal, Radio } from 'antd';
 import { fetchListInfo, fetQuyHoachByIdDistrict, searchLocation } from '../../services/api';
-import { setDistrictId } from '../../redux/planMap/planMapSlice';
+import useGetParams from '../Hooks/useGetParams';
 
 const customIcon = new L.Icon({
     iconUrl: require('../../assets/marker.png'),
@@ -32,38 +22,34 @@ const customIcon = new L.Icon({
     popupAnchor: [-3, -38],
 });
 
-const Map = ({
-    opacity,
-    handleSetProvinceName,
-    setSelectedPosition,
-    selectedPosition,
-    setIdDistrict,
-    idDistrict,
-}) => {
+const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosition, setIdDistrict, idDistrict }) => {
     const [idProvince, setIdProvince] = useState();
     const [polygon, setPolygon] = useState(null);
     const [selectedMarker, setSelectedMarker] = useState(null);
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
     const [selectedIDQuyHoach, setSelectedIDQuyHoach] = useState(null);
     const [locationInfo, setLocationInfo] = useState();
+    const [planOption, setPlanOption] = useState([]);
+    const searchParams = useGetParams();
 
     const locationLink = useLocation();
     const dispatch = useDispatch();
     const listMarker = useSelector(selectFilteredMarkers);
     const { coordinates } = useSelector((state) => state.searchQuery.searchResult);
+    console.log(coordinates, 'coordinates');
 
     const [messageApi, contextHolder] = message.useMessage();
     const [quyhoachIds, setQuyhoachIds] = useState([]);
     const [position, setPosition] = useState([]);
-        useEffect(() => {
-            const newQuyhoachIds =
-                new URLSearchParams(locationLink.search)
-                    .get('quyhoach')
-                    ?.split(',')
-                    .map((id) => parseInt(id, 10)) || [];
+    useEffect(() => {
+        const newQuyhoachIds =
+            new URLSearchParams(locationLink.search)
+                .get('quyhoach')
+                ?.split(',')
+                .map((id) => parseInt(id, 10)) || [];
 
-            setQuyhoachIds(newQuyhoachIds);
-        }, [locationLink.search]);
+        setQuyhoachIds(newQuyhoachIds);
+    }, [locationLink.search]);
 
     const closeDrawer = () => setIsDrawerVisible(false);
 
@@ -73,7 +59,6 @@ const Map = ({
         const vitri = searchParams.get('vitri');
         vitri && vitri.length > 0 && setPosition(vitri.split(',').map(Number));
     }, [locationLink.search]);
-
 
     useEffect(() => {
         if (position.length === 2) {
@@ -97,7 +82,7 @@ const Map = ({
                 const newUrl = `${locationLink.pathname}?${searchParams.toString()}`;
                 window.history.replaceState({}, '', newUrl);
 
-                if (map.getZoom() >= 8) {
+                if (zoom >= 8) {
                     const locationInfo = await fetchProvinceName(center.lat, center.lng);
                     // const res = await getProvince(locationInfo.provinceName);
                     // const data = await findClosestDistrict(res.TinhThanhPhoID, locationInfo.districtName);
@@ -107,7 +92,6 @@ const Map = ({
                     // } else {
                     //     console.log(data.message);
                     // }
-
                     try {
                         const res = await searchLocation(locationInfo?.districtName);
                         res ? setIdProvince(res.idDistrict) : setIdDistrict(null);
@@ -116,16 +100,38 @@ const Map = ({
                     }
                 }
             },
-            click: async (e) => {
+            // click: async (e) => {
+            //     const { lat, lng } = e.latlng;
+            //     map.setView([lat, lng]);
+            //     console.log('click', e.latlng);
+            //     setSelectedPosition({ lat, lng });
+            //     const info = await fetchProvinceName(lat, lng);
+            //     handleSetProvinceName(info);
+
+            //     setLocationInfo({ districtName: info.districtName, provinceName: info.provinceName, lat, lng });
+
+            //     try {
+            //         const res = await searchLocation(info?.districtName);
+            //         res ? setIdDistrict(res.idDistrict) : setIdDistrict(null);
+            //     } catch (error) {
+            //         setIdDistrict(null);
+            //     }
+            // },
+            dblclick: async (e) => {
                 const { lat, lng } = e.latlng;
                 map.setView([lat, lng]);
+                console.log('click', e.latlng);
                 setSelectedPosition({ lat, lng });
-                const info = await fetchProvinceName(lat, lng);
-                handleSetProvinceName(info);
-
-                setLocationInfo({ districtName: info.districtName, provinceName: info.provinceName, lat, lng });
 
                 try {
+                    // Call API province
+                    const info = await fetchProvinceName(lat, lng);
+                    handleSetProvinceName(info);
+
+                    // Update position info
+                    setLocationInfo({ districtName: info.districtName, provinceName: info.provinceName, lat, lng });
+
+                    // Call API district
                     const res = await searchLocation(info?.districtName);
                     res ? setIdDistrict(res.idDistrict) : setIdDistrict(null);
                 } catch (error) {
@@ -133,8 +139,33 @@ const Map = ({
                 }
             },
         });
+        map.doubleClickZoom.disable();
+
         return null;
     };
+    useEffect(() => {
+        (async () => {
+            try {
+                // Call API province
+                const vitri = searchParams.get('vitri').split(',');
+                if (vitri.length > 0) {
+                    const lat = parseFloat(vitri[0]);
+                    const lng = parseFloat(vitri[1]);
+                    const info = await fetchProvinceName(lat, lng);
+                    handleSetProvinceName(info);
+
+                    // Update position info
+                    setLocationInfo({ districtName: info.districtName, provinceName: info.provinceName, lat, lng });
+
+                    // Call API district
+                    const res = await searchLocation(info?.districtName);
+                    res ? setIdDistrict(res.idDistrict) : setIdDistrict(null);
+                }
+            } catch (error) {
+                setIdDistrict(null);
+            }
+        })();
+    }, []);
 
     useEffect(() => {
         setPolygon(
@@ -144,13 +175,21 @@ const Map = ({
         );
     }, [coordinates]);
 
+    // Get plan id by district id
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const data = await fetQuyHoachByIdDistrict(idDistrict);
                 if (data && data.length > 0) {
-                    setSelectedIDQuyHoach(data[0]?.id);
+                    if (data.length > 1) {
+                        setPlanOption(data);
+                    } else {
+                        setSelectedIDQuyHoach(data[0]?.id);
+                    }
                 } else {
+                    if (idDistrict) {
+                        messageApi.info('Không tìm thấy quy hoạch cho khu vực này');
+                    }
                     setSelectedIDQuyHoach(null);
                 }
             } catch (error) {
@@ -203,6 +242,22 @@ const Map = ({
     return (
         <>
             {contextHolder}
+            <Modal
+                title="Khu vực này có nhiều quy hoạch, vui lòng chọn quy hoạch để xem!"
+                open={planOption.length > 1}
+                onOk={() => setPlanOption([])}
+                onCancel={() => setPlanOption([])}
+                width={'30%'}
+                centered
+            >
+                <Radio.Group onChange={(e) => setSelectedIDQuyHoach(e.target.value)} value={selectedIDQuyHoach}>
+                    {planOption.map((plan) => (
+                        <Radio key={plan.id} value={plan.id}>
+                            {plan.description}
+                        </Radio>
+                    ))}
+                </Radio.Group>
+            </Modal>
             <MapContainer
                 style={{ width: '100%', height: 'calc(100vh - 56px)' }}
                 center={initialCenter}
@@ -247,7 +302,6 @@ const Map = ({
                             minZoom={12}
                             maxZoom={18}
                             opacity={opacity}
-                          
                         />
                     ))}
                     {selectedIDQuyHoach && (
@@ -257,7 +311,6 @@ const Map = ({
                             minZoom={12}
                             maxZoom={18}
                             opacity={opacity}
-                          
                         />
                     )}
                 </Pane>

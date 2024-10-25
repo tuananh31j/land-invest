@@ -31,6 +31,7 @@ import { useLocation } from 'react-router-dom';
 import fetchProvinceName from '../../function/findProvince';
 import { fetchAllQuyHoach } from '../../services/api';
 import ModalQuyHoach from './ModalQuyHoach';
+import { AimOutlined } from '@ant-design/icons';
 
 let DefaultIcon = L.icon({
     iconUrl: icon,
@@ -238,6 +239,9 @@ function Home() {
                             </div>
                             <div className="nav-icon-arrow" onClick={handleShareClick}>
                                 <LuShare2 size={20} />
+                            </div>
+                            <div className="nav-icon-arrow" onClick={handleShareClick}>
+                                <AimOutlined size={20} />
                             </div>
                         </div>
                     </div>

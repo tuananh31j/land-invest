@@ -3,7 +3,6 @@ import { memo, useEffect, useRef, useState } from 'react';
 import { Modal } from 'antd';
 import Draggable from 'react-draggable';
 
-import { useDispatch, useSelector } from 'react-redux';
 import { fetQuyHoachByIdDistrict } from '../../../services/api';
 import PlanMapSection from '../../PlanMapSection';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -118,8 +117,6 @@ const ModalQuyHoach = (props) => {
                     onMouseOut={() => {
                         setDisabled(true);
                     }}
-                    // fix eslintjsx-a11y/mouse-events-have-key-events
-                    // https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/master/docs/rules/mouse-events-have-key-events.md
                     onFocus={() => {}}
                     onBlur={() => {}}
                     // end
