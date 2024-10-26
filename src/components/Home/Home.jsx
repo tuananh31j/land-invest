@@ -20,21 +20,16 @@ import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import { message, notification } from 'antd';
 import ModalDownMenu from './ModalDown/ModalDownMenu';
 import ModalPriceFilter from './ModalDown/ModalPriceFilter';
-import { DollarIcon, FileUploadIcon, SaveIcon } from '../Icons';
+import { DollarIcon, FileUploadIcon } from '../Icons';
 import ModalUploadImage from './ModalUploadImage';
 import 'leaflet/dist/leaflet.css';
 
 import Map from '../Map';
-import axios from 'axios';
-import processBoundingBox from '../../function/processBoundingBox';
 import { useLocation, useNavigate } from 'react-router-dom';
-import fetchProvinceName from '../../function/findProvince';
-import { fetchAllQuyHoach } from '../../services/api';
 import ModalQuyHoach from './ModalQuyHoach';
 import { AimOutlined } from '@ant-design/icons';
 import { useDispatch } from 'react-redux';
-import { backToMyLocation, resetToDefault } from '../../redux/search/searchSlice';
-import { MyLocation } from '@mui/icons-material';
+import { backToMyLocation } from '../../redux/search/searchSlice';
 import useGetMyLocation from '../Hooks/useGetMyLocation';
 
 let DefaultIcon = L.icon({
@@ -53,7 +48,6 @@ function Home() {
     const [isShowModalPrice, setIsShowModalPrice] = useState(false);
     const [isShowModalQuyhoach, setIsShowModalQuyhoach] = useState(false);
     const [provinceName, setProvinceName] = useState('');
-    const [listQuyHoach, setListQuyHoach] = useState();
     const [idDistrict, setIdDistrict] = useState(null);
 
     const [messageApi, contextHolder] = message.useMessage();

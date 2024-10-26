@@ -16,6 +16,7 @@ import { fetchListInfo, fetQuyHoachByIdDistrict, searchLocation } from '../../se
 import useGetParams from '../Hooks/useGetParams';
 import { setCurrentLocation } from '../../redux/search/searchSlice';
 import UserLocationMarker from '../UserLocationMarker';
+import { debounce, throttle } from 'lodash';
 
 const customIcon = new L.Icon({
     iconUrl: require('../../assets/marker.png'),
@@ -118,27 +119,36 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
             //         setIdDistrict(null);
             //     }
             // },
-            dblclick: async (e) => {
-                const { lat, lng } = e.latlng;
-                map.setView([lat, lng]);
-                console.log('click', e.latlng);
-                setSelectedPosition({ lat, lng });
+            dblclick: debounce(
+                async (e) => {
+                    const { lat, lng } = e.latlng;
+                    map.setView([lat, lng]);
+                    console.log('click', e.latlng);
+                    setSelectedPosition({ lat, lng });
 
-                try {
-                    // Call API province
-                    const info = await fetchProvinceName(lat, lng);
-                    handleSetProvinceName(info);
+                    try {
+                        // Call API province
+                        const info = await fetchProvinceName(lat, lng);
+                        // const fetchDebouncedProvinceName = debounce(async (lat, lng) => {
+                        //     const info = await fetchProvinceName(lat, lng);
+                        //     console.log("Fetched Province Info:", info);
+                        //     return info;
+                        //   }, 1000);
+                        handleSetProvinceName(info);
+                        console.log(info, 'info');
+                        // Update position info
+                        setLocationInfo({ districtName: info.districtName, provinceName: info.provinceName, lat, lng });
 
-                    // Update position info
-                    setLocationInfo({ districtName: info.districtName, provinceName: info.provinceName, lat, lng });
-
-                    // Call API district
-                    const res = await searchLocation(info?.districtName);
-                    res ? setIdDistrict(res.idDistrict) : setIdDistrict(null);
-                } catch (error) {
-                    setIdDistrict(null);
-                }
-            },
+                        // Call API district
+                        const res = await searchLocation(info?.districtName);
+                        res ? setIdDistrict(res.idDistrict) : setIdDistrict(null);
+                    } catch (error) {
+                        setIdDistrict(null);
+                    }
+                },
+                1000,
+                { leading: false, trailing: true },
+            ),
         });
         map.doubleClickZoom.disable();
 

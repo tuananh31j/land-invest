@@ -8,6 +8,7 @@ import listMarkerReducer from './listMarker/listMarkerSllice';
 import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import listGroupReducer from './getId/getIDSlice';
+// import baseApi from './apis/baseApi';
 
 const persistConfig = {
     key: 'root',
@@ -16,13 +17,14 @@ const persistConfig = {
 };
 
 const rootReducer = combineReducers({
+    // [baseApi.reducerPath]: baseApi.reducer,
     account: accountReducer,
     listbox: listBoxReducer,
     getid: listGroupReducer,
     searchQuery: searchQueryReducer,
     filter: filterReducer,
     map: planMapReducer,
-    listMarker: listMarkerReducer
+    listMarker: listMarkerReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

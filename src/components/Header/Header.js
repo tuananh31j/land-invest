@@ -18,8 +18,6 @@ import { useDebounce } from 'use-debounce';
 import { doSearch } from '../../redux/search/searchSlice';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { ActionIcon, HomeIcon, NewsIcon, SearchIcon, SearchNavbarIcon, NotificationIcon } from '../Icons';
-import { FaMap } from 'react-icons/fa';
-import { handleRefreshToken } from '../../utils/axios-customize';
 
 const NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org/search?';
 const params = {
