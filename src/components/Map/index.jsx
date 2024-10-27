@@ -166,7 +166,6 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
 
         fetchData();
     }, [listenDblClick]);
-
     useEffect(() => {
         (async () => {
             try {
