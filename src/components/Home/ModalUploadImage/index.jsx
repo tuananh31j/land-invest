@@ -114,8 +114,6 @@ const ModalUploadImage = ({
                 },
             });
 
-            console.log('Response:', response.data);
-            console.log('Data uploaded successfully');
             showNotification(
                 'success',
                 'Thành công',

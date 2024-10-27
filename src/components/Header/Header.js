@@ -176,7 +176,6 @@ const Header = () => {
     }, [debouncedInputSearch]);
 
     const handleItemClick = (item) => {
-        console.log(item, 'item');
         if (item) {
             handleSearchDispatch(item);
         }

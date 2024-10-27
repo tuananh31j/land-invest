@@ -4,21 +4,20 @@ import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import { UpdateBox, UpdateGroup } from '../../../services/api';
 import { useSelector } from 'react-redux';
 const GroupModalUpdate = (props) => {
-    const { openModalCreate, setOpenModalCreate , getListViewGroup } = props;
+    const { openModalCreate, setOpenModalCreate, getListViewGroup } = props;
     const { openModalUpdate, setOpenModalUpdate, dataUpdate, setDataUpdate } = props;
     const [isSubmit, setIsSubmit] = useState(false);
 
-    const [listCategory, setListCategory] = useState([])
+    const [listCategory, setListCategory] = useState([]);
     const [form] = Form.useForm();
-
 
     const [loading, setLoading] = useState(false);
     const [loadingSlider, setLoadingSlider] = useState(false);
 
-    const [imageUrl, setImageUrl] = useState("");
+    const [imageUrl, setImageUrl] = useState('');
 
-    const [dataThumbnail, setDataThumbnail] = useState([])
-    const [dataSlider, setDataSlider] = useState([])
+    const [dataThumbnail, setDataThumbnail] = useState([]);
+    const [dataSlider, setDataSlider] = useState([]);
 
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewImage, setPreviewImage] = useState('');
@@ -27,33 +26,27 @@ const GroupModalUpdate = (props) => {
     const idBoxAdmin = useSelector((state) => state.getid.idGroup);
     const adGroupAdmin = useSelector((state) => state.getid.idPost);
     const [initForm, setInitForm] = useState(null);
-    console.log(">>> check dataUpdate create group: ", dataUpdate);
     useEffect(() => {
-        
         if (dataUpdate?.GroupID) {
             const init = {
                 GroupID: dataUpdate.GroupID,
                 BoxID: idBoxAdmin,
                 GroupName: dataUpdate.GroupName,
-                avatarLink: dataUpdate.avatarLink
-            }
+                avatarLink: dataUpdate.avatarLink,
+            };
             setInitForm(init);
             form.setFieldsValue(init);
         }
         return () => {
             form.resetFields();
-        }
-    }, [dataUpdate])
+        };
+    }, [dataUpdate]);
 
     const onFinish = async (values) => {
-        // console.log(">>> check values: ", values);
-        // console.log(">>> check data thumbnail: ", dataThumbnail);
-        // console.log(">>> check data slider: ", dataSlider);
-
         // return;
         // if(dataThumbnail.length === 0) {
         //     notification.error({
-        //         message:'Lỗi validate', 
+        //         message:'Lỗi validate',
         //         description: 'Vui lòng upload ảnh thumbnail'
         //     })
         //     return;
@@ -61,7 +54,7 @@ const GroupModalUpdate = (props) => {
 
         // if(dataSlider.length === 0) {
         //     notification.error({
-        //         message:'Lỗi validate', 
+        //         message:'Lỗi validate',
         //         description: 'Vui lòng upload ảnh Slider'
         //     })
         //     return;
@@ -70,32 +63,25 @@ const GroupModalUpdate = (props) => {
         // const thumbnail = dataThumbnail[0].name;
         // const slider = dataSlider.map((item)=> {item.name})
 
-        console.log("dataUpdate GroupID: ",dataUpdate.GroupID)
-        console.log("dataUpdate GroupName values: ",GroupName)
-        setIsSubmit(true)
-        const res = await UpdateGroup(GroupID,BoxID, avatarLink, GroupName);
-        res.headers= {
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-        }
-        console.log("res GroupName values: ",res)
-        
-        console.log("them group header: ",res.headers)
+        setIsSubmit(true);
+        const res = await UpdateGroup(GroupID, BoxID, avatarLink, GroupName);
+        res.headers = {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        };
         if (res) {
             message.success('Update group thành công');
             form.resetFields();
             setOpenModalUpdate(false);
-            await props.getListViewGroup()
+            await props.getListViewGroup();
         } else {
             notification.error({
                 message: 'Đã có lỗi xảy ra',
-                description: res.message
-            })
+                description: res.message,
+            });
         }
-        
-        setIsSubmit(false)
-        
-    };
 
+        setIsSubmit(false);
+    };
 
     const getBase64 = (img, callback) => {
         const reader = new FileReader();
@@ -129,7 +115,6 @@ const GroupModalUpdate = (props) => {
         }
     };
 
-
     const handleUploadFileThumbnail = async ({ file, onSuccess, onError }) => {
         // const res = await callUploadBookImg(file);
         // if (res && res.data) {
@@ -159,13 +144,13 @@ const GroupModalUpdate = (props) => {
 
     const handleRemoveFile = (file, type) => {
         if (type === 'thumbnail') {
-            setDataThumbnail([])
+            setDataThumbnail([]);
         }
         if (type === 'slider') {
-            const newSlider = dataSlider.filter(x => x.uid !== file.uid);
+            const newSlider = dataSlider.filter((x) => x.uid !== file.uid);
             setDataSlider(newSlider);
         }
-    }
+    };
 
     const handlePreview = async (file) => {
         getBase64(file.originFileObj, (url) => {
@@ -177,31 +162,26 @@ const GroupModalUpdate = (props) => {
 
     return (
         <>
-
             <Modal
                 title="Update Group"
                 open={openModalUpdate}
-                onOk={() => { form.submit() }}
+                onOk={() => {
+                    form.submit();
+                }}
                 onCancel={() => {
                     form.resetFields();
-                    setOpenModalUpdate(false)
+                    setOpenModalUpdate(false);
                 }}
-                okText={"Update"}
-                cancelText={"Hủy"}
+                okText={'Update'}
+                cancelText={'Hủy'}
                 confirmLoading={isSubmit}
-                width={"50vw"}
+                width={'50vw'}
                 //do not close when click fetchBook
                 maskClosable={false}
             >
                 <Divider />
 
-                <Form
-                    form={form}
-                    name="basic"
-                    onFinish={onFinish}
-                    autoComplete="off"
-                    
-                >
+                <Form form={form} name="basic" onFinish={onFinish} autoComplete="off">
                     <Row gutter={15}>
                         <Col hidden>
                             <Form.Item
@@ -234,7 +214,7 @@ const GroupModalUpdate = (props) => {
                                 name="avatarLink"
                                 rules={[{ required: true, message: 'Vui lòng nhập tên hiển thị!' }]}
                             >
-                                <Input  />
+                                <Input />
                             </Form.Item>
                         </Col>
                         <Col span={24}>
@@ -244,7 +224,7 @@ const GroupModalUpdate = (props) => {
                                 name="GroupName"
                                 rules={[{ required: true, message: 'Vui lòng nhập tên hiển thị!' }]}
                             >
-                                <Input  />
+                                <Input />
                             </Form.Item>
                         </Col>
                         {/* <Col span={24}>

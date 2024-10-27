@@ -3,56 +3,48 @@ import { Col, Divider, Form, Input, InputNumber, message, Modal, notification, R
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import { UpdateBox } from '../../../services/api';
 const BoxModalUpdate = (props) => {
-    const { openModalCreate, setOpenModalCreate , getListViewBox } = props;
+    const { openModalCreate, setOpenModalCreate, getListViewBox } = props;
     const { openModalUpdate, setOpenModalUpdate, dataUpdate, setDataUpdate } = props;
     const [isSubmit, setIsSubmit] = useState(false);
 
-    const [listCategory, setListCategory] = useState([])
+    const [listCategory, setListCategory] = useState([]);
     const [form] = Form.useForm();
-
 
     const [loading, setLoading] = useState(false);
     const [loadingSlider, setLoadingSlider] = useState(false);
 
-    const [imageUrl, setImageUrl] = useState("");
+    const [imageUrl, setImageUrl] = useState('');
 
-    const [dataThumbnail, setDataThumbnail] = useState([])
-    const [dataSlider, setDataSlider] = useState([])
+    const [dataThumbnail, setDataThumbnail] = useState([]);
+    const [dataSlider, setDataSlider] = useState([]);
 
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewImage, setPreviewImage] = useState('');
     const [previewTitle, setPreviewTitle] = useState('');
 
-    
     const [initForm, setInitForm] = useState(null);
-    console.log(">>> check dataUpdate: ", dataUpdate);
 
     useEffect(() => {
         if (dataUpdate?.BoxID) {
-            
             const init = {
                 BoxID: dataUpdate.BoxID,
                 BoxName: dataUpdate.BoxName,
                 Description: dataUpdate.Description,
-                avatarLink: dataUpdate.avatarLink
-            }
+                avatarLink: dataUpdate.avatarLink,
+            };
             setInitForm(init);
             form.setFieldsValue(init);
         }
         return () => {
             form.resetFields();
-        }
-    }, [dataUpdate])
+        };
+    }, [dataUpdate]);
 
     const onFinish = async (values) => {
-        // console.log(">>> check values: ", values);
-        // console.log(">>> check data thumbnail: ", dataThumbnail);
-        // console.log(">>> check data slider: ", dataSlider);
-
         // return;
         // if(dataThumbnail.length === 0) {
         //     notification.error({
-        //         message:'Lỗi validate', 
+        //         message:'Lỗi validate',
         //         description: 'Vui lòng upload ảnh thumbnail'
         //     })
         //     return;
@@ -60,7 +52,7 @@ const BoxModalUpdate = (props) => {
 
         // if(dataSlider.length === 0) {
         //     notification.error({
-        //         message:'Lỗi validate', 
+        //         message:'Lỗi validate',
         //         description: 'Vui lòng upload ảnh Slider'
         //     })
         //     return;
@@ -69,8 +61,7 @@ const BoxModalUpdate = (props) => {
         // const thumbnail = dataThumbnail[0].name;
         // const slider = dataSlider.map((item)=> {item.name})
 
-        console.log("dataUpdate.BoxID: ",dataUpdate.BoxID)
-        setIsSubmit(true)
+        setIsSubmit(true);
         // const res = await UpdateBox(BoxID, BoxName, Description, avatarLink);
         // res.headers= {
         //     'Authorization': `Bearer ${localStorage.getItem('access_token')}`
@@ -80,32 +71,29 @@ const BoxModalUpdate = (props) => {
         if (!token) {
             notification.error({
                 message: 'Lỗi xác thực',
-                description: 'Không tìm thấy token. Vui lòng đăng nhập lại.'
+                description: 'Không tìm thấy token. Vui lòng đăng nhập lại.',
             });
             return;
         }
 
         const res = await UpdateBox(BoxID, BoxName, Description, avatarLink, {
             headers: {
-                'Authorization': `Bearer ${token}`
-            }
+                Authorization: `Bearer ${token}`,
+            },
         });
-        console.log("them box header: ",res.headers)
         if (res) {
             message.success('Update box thành công');
             form.resetFields();
             setOpenModalUpdate(false);
-            await props.getListViewBox()
+            await props.getListViewBox();
         } else {
             notification.error({
                 message: 'Đã có lỗi xảy ra',
-                description: res.message
-            })
+                description: res.message,
+            });
         }
-        setIsSubmit(false)
-        
+        setIsSubmit(false);
     };
-
 
     const getBase64 = (img, callback) => {
         const reader = new FileReader();
@@ -139,7 +127,6 @@ const BoxModalUpdate = (props) => {
         }
     };
 
-
     const handleUploadFileThumbnail = async ({ file, onSuccess, onError }) => {
         // const res = await callUploadBookImg(file);
         // if (res && res.data) {
@@ -169,13 +156,13 @@ const BoxModalUpdate = (props) => {
 
     const handleRemoveFile = (file, type) => {
         if (type === 'thumbnail') {
-            setDataThumbnail([])
+            setDataThumbnail([]);
         }
         if (type === 'slider') {
-            const newSlider = dataSlider.filter(x => x.uid !== file.uid);
+            const newSlider = dataSlider.filter((x) => x.uid !== file.uid);
             setDataSlider(newSlider);
         }
-    }
+    };
 
     const handlePreview = async (file) => {
         getBase64(file.originFileObj, (url) => {
@@ -187,31 +174,26 @@ const BoxModalUpdate = (props) => {
 
     return (
         <>
-
             <Modal
                 title="Update Box"
                 open={openModalUpdate}
-                onOk={() => { form.submit() }}
+                onOk={() => {
+                    form.submit();
+                }}
                 onCancel={() => {
                     form.resetFields();
-                    setOpenModalUpdate(false)
+                    setOpenModalUpdate(false);
                 }}
-                okText={"Update"}
-                cancelText={"Hủy"}
+                okText={'Update'}
+                cancelText={'Hủy'}
                 confirmLoading={isSubmit}
-                width={"50vw"}
+                width={'50vw'}
                 //do not close when click fetchBook
                 maskClosable={false}
             >
                 <Divider />
 
-                <Form
-                    form={form}
-                    name="basic"
-                    onFinish={onFinish}
-                    autoComplete="off"
-                    
-                >
+                <Form form={form} name="basic" onFinish={onFinish} autoComplete="off">
                     <Row gutter={15}>
                         <Col hidden>
                             <Form.Item
@@ -231,7 +213,7 @@ const BoxModalUpdate = (props) => {
                                 name="BoxName"
                                 rules={[{ required: true, message: 'Vui lòng nhập tên hiển thị!' }]}
                             >
-                                <Input  />
+                                <Input />
                             </Form.Item>
                         </Col>
                         <Col span={24}>
@@ -244,7 +226,7 @@ const BoxModalUpdate = (props) => {
                                 <Input />
                             </Form.Item>
                         </Col>
-                        
+
                         <Col span={24}>
                             <Form.Item
                                 labelCol={{ span: 24 }}

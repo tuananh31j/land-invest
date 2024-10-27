@@ -23,7 +23,6 @@ const LatestNews = () => {
     const [isNumberInfor, setNumberInfor] = useState([])
     const [latestNews, setLatestNews] = useState([]);
 
-    console.log('hotNews', latestNews)
 
 
     useEffect(() => {

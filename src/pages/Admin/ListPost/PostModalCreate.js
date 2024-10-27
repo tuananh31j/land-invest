@@ -1,24 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { Col, Divider, Form, Input, InputNumber, message, Modal, notification, Row, Select, Upload } from 'antd';
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
-import { CreateBox, CreateGroup, CreatePost,  } from '../../../services/api';
+import { CreateBox, CreateGroup, CreatePost } from '../../../services/api';
 import { useSelector } from 'react-redux';
 const PostModalCreate = (props) => {
     const { openModalCreate, setOpenModalCreate, getListViewPost } = props;
     const [isSubmit, setIsSubmit] = useState(false);
 
-    const [listCategory, setListCategory] = useState([])
+    const [listCategory, setListCategory] = useState([]);
     const [form] = Form.useForm();
 
     const idBox = useSelector((state) => state.getid.idGroup);
-    console.log("res redux create idBox",idBox)
     const [loading, setLoading] = useState(false);
     const [loadingSlider, setLoadingSlider] = useState(false);
 
-    const [imageUrl, setImageUrl] = useState("");
+    const [imageUrl, setImageUrl] = useState('');
 
-    const [dataThumbnail, setDataThumbnail] = useState([])
-    const [dataSlider, setDataSlider] = useState([])
+    const [dataThumbnail, setDataThumbnail] = useState([]);
+    const [dataSlider, setDataSlider] = useState([]);
 
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewImage, setPreviewImage] = useState('');
@@ -26,18 +25,12 @@ const PostModalCreate = (props) => {
     const [postLatitude, setPostLatitude] = useState(10);
     const [postLongitude, setPostLongitude] = useState(100);
     const adGroupAdmin = useSelector((state) => state.getid.idPost);
-    
-    console.log(">>> check values create Post adGroupAdmin: ", adGroupAdmin);
 
     const onFinish = async (values) => {
-        // console.log(">>> check values: ", values);
-        // console.log(">>> check data thumbnail: ", dataThumbnail);
-        // console.log(">>> check data slider: ", dataSlider);
-
         // return;
         // if(dataThumbnail.length === 0) {
         //     notification.error({
-        //         message:'Lỗi validate', 
+        //         message:'Lỗi validate',
         //         description: 'Vui lòng upload ảnh thumbnail'
         //     })
         //     return;
@@ -45,38 +38,34 @@ const PostModalCreate = (props) => {
 
         // if(dataSlider.length === 0) {
         //     notification.error({
-        //         message:'Lỗi validate', 
+        //         message:'Lỗi validate',
         //         description: 'Vui lòng upload ảnh Slider'
         //     })
         //     return;
         // }
-        const {Title, Content} = values;
-        console.log(">>> check values Group: ", values);
+        const { Title, Content } = values;
 
         // const thumbnail = dataThumbnail[0].name;
         // const slider = dataSlider.map((item)=> {item.name})
 
-        setIsSubmit(true)
-        const res = await CreatePost( adGroupAdmin, Title, Content, postLatitude , postLongitude)
-        res.headers= {
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-        }
-        if (res) {  
-            
+        setIsSubmit(true);
+        const res = await CreatePost(adGroupAdmin, Title, Content, postLatitude, postLongitude);
+        res.headers = {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        };
+        if (res) {
             message.success('Thêm mới Post thành công');
             form.resetFields();
             setOpenModalCreate(false);
-            await props.getListViewPost()
+            await props.getListViewPost();
         } else {
             notification.error({
                 message: 'Đã có lỗi xảy ra',
-                description: res.message
-            })
+                description: res.message,
+            });
         }
-        setIsSubmit(false)
-        
+        setIsSubmit(false);
     };
-
 
     const getBase64 = (img, callback) => {
         const reader = new FileReader();
@@ -110,7 +99,6 @@ const PostModalCreate = (props) => {
         }
     };
 
-
     const handleUploadFileThumbnail = async ({ file, onSuccess, onError }) => {
         // const res = await callUploadBookImg(file);
         // if (res && res.data) {
@@ -140,13 +128,13 @@ const PostModalCreate = (props) => {
 
     const handleRemoveFile = (file, type) => {
         if (type === 'thumbnail') {
-            setDataThumbnail([])
+            setDataThumbnail([]);
         }
         if (type === 'slider') {
-            const newSlider = dataSlider.filter(x => x.uid !== file.uid);
+            const newSlider = dataSlider.filter((x) => x.uid !== file.uid);
             setDataSlider(newSlider);
         }
-    }
+    };
 
     const handlePreview = async (file) => {
         getBase64(file.originFileObj, (url) => {
@@ -158,31 +146,26 @@ const PostModalCreate = (props) => {
 
     return (
         <>
-
             <Modal
                 title="Thêm mới Post"
                 open={openModalCreate}
-                onOk={() => { form.submit() }}
+                onOk={() => {
+                    form.submit();
+                }}
                 onCancel={() => {
                     form.resetFields();
-                    setOpenModalCreate(false)
+                    setOpenModalCreate(false);
                 }}
-                okText={"Tạo mới"}
-                cancelText={"Hủy"}
+                okText={'Tạo mới'}
+                cancelText={'Hủy'}
                 confirmLoading={isSubmit}
-                width={"50vw"}
+                width={'50vw'}
                 //do not close when click fetchBook
                 maskClosable={false}
             >
                 <Divider />
 
-                <Form
-                    form={form}
-                    name="basic"
-                    onFinish={onFinish}
-                    autoComplete="off"
-                    
-                >
+                <Form form={form} name="basic" onFinish={onFinish} autoComplete="off">
                     <Row gutter={15}>
                         {/* <Col hidden>
                             <Form.Item
@@ -226,7 +209,7 @@ const PostModalCreate = (props) => {
                                 <Input />
                             </Form.Item>
                         </Col>
-                        
+
                         {/* <Col span={12}>
                             <Form.Item
                                 labelCol={{ span: 24 }}

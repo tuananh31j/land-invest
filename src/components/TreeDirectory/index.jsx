@@ -180,7 +180,6 @@ const TreeDirectory = () => {
         setExpandedKeys(expandedKeysValue);
         setAutoExpandParent(false);
     };
-    // console.log(treeData, 'treeData gggfdgdfg');
 
     return (
         <>

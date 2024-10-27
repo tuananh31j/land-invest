@@ -34,8 +34,6 @@ const ModalPriceFilter = (props) => {
         dispatch(setFilter({ category, id }));
     };
 
-    console.log('selectedFilters', selectedFilters);
-
     const onStart = (_event, uiData) => {
         const { clientWidth, clientHeight } = window.document.documentElement;
         const targetRect = draggleRef.current?.getBoundingClientRect();

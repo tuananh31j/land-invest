@@ -3,54 +3,46 @@ import { Col, Divider, Form, Input, InputNumber, message, Modal, notification, R
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import { UpdateBox, UpdateGroup, UpdatePost } from '../../../services/api';
 const PostModalUpdate = (props) => {
-    const { openModalCreate, setOpenModalCreate , getListViewPost } = props;
+    const { openModalCreate, setOpenModalCreate, getListViewPost } = props;
     const { openModalUpdate, setOpenModalUpdate, dataUpdate, setDataUpdate } = props;
     const [isSubmit, setIsSubmit] = useState(false);
 
-    const [listCategory, setListCategory] = useState([])
+    const [listCategory, setListCategory] = useState([]);
     const [form] = Form.useForm();
-
 
     const [loading, setLoading] = useState(false);
     const [loadingSlider, setLoadingSlider] = useState(false);
 
-    const [imageUrl, setImageUrl] = useState("");
+    const [imageUrl, setImageUrl] = useState('');
 
-    const [dataThumbnail, setDataThumbnail] = useState([])
-    const [dataSlider, setDataSlider] = useState([])
+    const [dataThumbnail, setDataThumbnail] = useState([]);
+    const [dataSlider, setDataSlider] = useState([]);
 
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewImage, setPreviewImage] = useState('');
     const [previewTitle, setPreviewTitle] = useState('');
 
-    
     const [initForm, setInitForm] = useState(null);
-    console.log(">>> check dataUpdate create post: ", dataUpdate);
     useEffect(() => {
-        
         if (dataUpdate?.PostID) {
             const init = {
                 PostID: dataUpdate.PostID,
                 Title: dataUpdate.Title,
                 Content: dataUpdate.Content,
-            }
+            };
             setInitForm(init);
             form.setFieldsValue(init);
         }
         return () => {
             form.resetFields();
-        }
-    }, [dataUpdate])
+        };
+    }, [dataUpdate]);
 
     const onFinish = async (values) => {
-        // console.log(">>> check values: ", values);
-        // console.log(">>> check data thumbnail: ", dataThumbnail);
-        // console.log(">>> check data slider: ", dataSlider);
-
         // return;
         // if(dataThumbnail.length === 0) {
         //     notification.error({
-        //         message:'Lỗi validate', 
+        //         message:'Lỗi validate',
         //         description: 'Vui lòng upload ảnh thumbnail'
         //     })
         //     return;
@@ -58,37 +50,34 @@ const PostModalUpdate = (props) => {
 
         // if(dataSlider.length === 0) {
         //     notification.error({
-        //         message:'Lỗi validate', 
+        //         message:'Lỗi validate',
         //         description: 'Vui lòng upload ảnh Slider'
         //     })
         //     return;
         // }
-        const { PostID,  Title , Content} = values;
+        const { PostID, Title, Content } = values;
         // const thumbnail = dataThumbnail[0].name;
         // const slider = dataSlider.map((item)=> {item.name})
 
-        setIsSubmit(true)
-        const res = await UpdatePost(PostID,  Title , Content);
-        res.headers= {
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-        }
-        // console.log("them group header: ",res.headers)
+        setIsSubmit(true);
+        const res = await UpdatePost(PostID, Title, Content);
+        res.headers = {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        };
         if (res) {
             message.success('Update group thành công');
             form.resetFields();
             setOpenModalUpdate(false);
-            await props.getListViewPost()
+            await props.getListViewPost();
         } else {
             notification.error({
                 message: 'Đã có lỗi xảy ra',
-                description: res.message
-            })
+                description: res.message,
+            });
         }
-        
-        setIsSubmit(false)
-        
-    };
 
+        setIsSubmit(false);
+    };
 
     const getBase64 = (img, callback) => {
         const reader = new FileReader();
@@ -122,7 +111,6 @@ const PostModalUpdate = (props) => {
         }
     };
 
-
     const handleUploadFileThumbnail = async ({ file, onSuccess, onError }) => {
         // const res = await callUploadBookImg(file);
         // if (res && res.data) {
@@ -152,13 +140,13 @@ const PostModalUpdate = (props) => {
 
     const handleRemoveFile = (file, type) => {
         if (type === 'thumbnail') {
-            setDataThumbnail([])
+            setDataThumbnail([]);
         }
         if (type === 'slider') {
-            const newSlider = dataSlider.filter(x => x.uid !== file.uid);
+            const newSlider = dataSlider.filter((x) => x.uid !== file.uid);
             setDataSlider(newSlider);
         }
-    }
+    };
 
     const handlePreview = async (file) => {
         getBase64(file.originFileObj, (url) => {
@@ -170,31 +158,26 @@ const PostModalUpdate = (props) => {
 
     return (
         <>
-
             <Modal
                 title="Update Post"
                 open={openModalUpdate}
-                onOk={() => { form.submit() }}
+                onOk={() => {
+                    form.submit();
+                }}
                 onCancel={() => {
                     form.resetFields();
-                    setOpenModalUpdate(false)
+                    setOpenModalUpdate(false);
                 }}
-                okText={"Update"}
-                cancelText={"Hủy"}
+                okText={'Update'}
+                cancelText={'Hủy'}
                 confirmLoading={isSubmit}
-                width={"50vw"}
+                width={'50vw'}
                 //do not close when click fetchBook
                 maskClosable={false}
             >
                 <Divider />
 
-                <Form
-                    form={form}
-                    name="basic"
-                    onFinish={onFinish}
-                    autoComplete="off"
-                    
-                >
+                <Form form={form} name="basic" onFinish={onFinish} autoComplete="off">
                     <Row gutter={15}>
                         <Col hidden>
                             <Form.Item
@@ -214,7 +197,7 @@ const PostModalUpdate = (props) => {
                                 name="Title"
                                 rules={[{ required: true, message: 'Vui lòng nhập tiêu đề thị!' }]}
                             >
-                                <Input  />
+                                <Input />
                             </Form.Item>
                         </Col>
 
@@ -225,7 +208,7 @@ const PostModalUpdate = (props) => {
                                 name="Content"
                                 rules={[{ required: true, message: 'Vui lòng nhập nội dung!' }]}
                             >
-                                <Input  />
+                                <Input />
                             </Form.Item>
                         </Col>
                         {/* <Col span={24}>

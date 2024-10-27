@@ -4,12 +4,10 @@ import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import { UpdateBox, UpdateComment, UpdateGroup } from '../../../services/api';
 import { useSelector } from 'react-redux';
 const CommentModalUpdate = (props) => {
-    const { openModalUpdate, setOpenModalUpdate, dataUpdate,  } = props;
+    const { openModalUpdate, setOpenModalUpdate, dataUpdate } = props;
     const [isSubmit, setIsSubmit] = useState(false);
 
     const [form] = Form.useForm();
-
-
 
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewImage, setPreviewImage] = useState('');
@@ -18,32 +16,26 @@ const CommentModalUpdate = (props) => {
     const idBoxAdmin = useSelector((state) => state.getid.idGroup);
     const adGroupAdmin = useSelector((state) => state.getid.idPost);
     const [initForm, setInitForm] = useState(null);
-    console.log(">>> check dataUpdate update comment: ", dataUpdate);
     useEffect(() => {
-        
         if (dataUpdate?.CommentID) {
             const init = {
                 CommentID: dataUpdate.CommentID,
                 Content: dataUpdate.Content,
-                PhotoURL: null
-            }
+                PhotoURL: null,
+            };
             setInitForm(init);
             form.setFieldsValue(init);
         }
         return () => {
             form.resetFields();
-        }
-    }, [dataUpdate])
+        };
+    }, [dataUpdate]);
 
     const onFinish = async (values) => {
-        // console.log(">>> check values: ", values);
-        // console.log(">>> check data thumbnail: ", dataThumbnail);
-        // console.log(">>> check data slider: ", dataSlider);
-
         // return;
         // if(dataThumbnail.length === 0) {
         //     notification.error({
-        //         message:'Lỗi validate', 
+        //         message:'Lỗi validate',
         //         description: 'Vui lòng upload ảnh thumbnail'
         //     })
         //     return;
@@ -51,70 +43,57 @@ const CommentModalUpdate = (props) => {
 
         // if(dataSlider.length === 0) {
         //     notification.error({
-        //         message:'Lỗi validate', 
+        //         message:'Lỗi validate',
         //         description: 'Vui lòng upload ảnh Slider'
         //     })
         //     return;
         // }
-        const { CommentID,Content, PhotoURL } = values;
+        const { CommentID, Content, PhotoURL } = values;
         // // const thumbnail = dataThumbnail[0].name;
         // // const slider = dataSlider.map((item)=> {item.name})
 
-        // console.log("dataUpdate GroupID: ",dataUpdate.GroupID)
-        // console.log("dataUpdate GroupName values: ",GroupName)
         // setIsSubmit(true)
-        const res = await UpdateComment(CommentID,Content, PhotoURL);
-        res.headers= {
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-        }
-        console.log("res GroupName values: ",res)
-        
-        console.log("them group header: ",res.headers)
+        const res = await UpdateComment(CommentID, Content, PhotoURL);
+        res.headers = {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        };
         if (res) {
             message.success('Update comment thành công');
             form.resetFields();
             setOpenModalUpdate(false);
-            await props.getListViewComment()
+            await props.getListViewComment();
         } else {
             notification.error({
                 message: 'Đã có lỗi xảy ra',
-                description: res.message
-            })
+                description: res.message,
+            });
         }
-        
+
         // setIsSubmit(false)
-        
     };
-
-
 
     return (
         <>
-
             <Modal
                 title="Update Comment"
                 open={openModalUpdate}
-                onOk={() => { form.submit() }}
+                onOk={() => {
+                    form.submit();
+                }}
                 onCancel={() => {
                     form.resetFields();
-                    setOpenModalUpdate(false)
+                    setOpenModalUpdate(false);
                 }}
-                okText={"Update"}
-                cancelText={"Hủy"}
+                okText={'Update'}
+                cancelText={'Hủy'}
                 confirmLoading={isSubmit}
-                width={"50vw"}
+                width={'50vw'}
                 //do not close when click fetchBook
                 maskClosable={false}
             >
                 <Divider />
 
-                <Form
-                    form={form}
-                    name="basic"
-                    onFinish={onFinish}
-                    autoComplete="off"
-                    
-                >
+                <Form form={form} name="basic" onFinish={onFinish} autoComplete="off">
                     <Row gutter={15}>
                         <Col hidden>
                             <Form.Item
@@ -128,7 +107,6 @@ const CommentModalUpdate = (props) => {
                             </Form.Item>
                         </Col>
 
-                        
                         <Col span={24}>
                             <Form.Item
                                 labelCol={{ span: 24 }}
@@ -136,7 +114,7 @@ const CommentModalUpdate = (props) => {
                                 name="Content"
                                 rules={[{ required: true, message: 'Vui lòng nhập tên hiển thị!' }]}
                             >
-                                <Input  />
+                                <Input />
                             </Form.Item>
                         </Col>
                         <Col span={24}>
@@ -147,7 +125,7 @@ const CommentModalUpdate = (props) => {
                                 name="PhotoURL"
                                 // rules={[{ required: true, message: 'Vui lòng nhập tên hiển thị!' }]}
                             >
-                                <Input  />
+                                <Input />
                             </Form.Item>
                         </Col>
                         {/* <Col span={24}>

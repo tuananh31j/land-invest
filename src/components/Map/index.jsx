@@ -26,6 +26,7 @@ const customIcon = new L.Icon({
 });
 
 const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosition, setIdDistrict, idDistrict }) => {
+    const [listenDblClick, setListenDblClick] = useState(0);
     const [idProvince, setIdProvince] = useState();
     const [polygon, setPolygon] = useState(null);
     const [selectedMarker, setSelectedMarker] = useState(null);
@@ -105,7 +106,6 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
             // click: async (e) => {
             //     const { lat, lng } = e.latlng;
             //     map.setView([lat, lng]);
-            //     console.log('click', e.latlng);
             //     setSelectedPosition({ lat, lng });
             //     const info = await fetchProvinceName(lat, lng);
             //     handleSetProvinceName(info);
@@ -123,7 +123,6 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
                 async (e) => {
                     const { lat, lng } = e.latlng;
                     map.setView([lat, lng]);
-                    console.log('click', e.latlng);
                     setSelectedPosition({ lat, lng });
 
                     try {
@@ -131,22 +130,21 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
                         const info = await fetchProvinceName(lat, lng);
                         // const fetchDebouncedProvinceName = debounce(async (lat, lng) => {
                         //     const info = await fetchProvinceName(lat, lng);
-                        //     console.log("Fetched Province Info:", info);
                         //     return info;
                         //   }, 1000);
                         handleSetProvinceName(info);
-                        console.log(info, 'info');
                         // Update position info
                         setLocationInfo({ districtName: info.districtName, provinceName: info.provinceName, lat, lng });
 
                         // Call API district
                         const res = await searchLocation(info?.districtName);
                         res ? setIdDistrict(res.idDistrict) : setIdDistrict(null);
+                        setListenDblClick(Math.random());
                     } catch (error) {
                         setIdDistrict(null);
                     }
                 },
-                1000,
+                500,
                 { leading: false, trailing: true },
             ),
         });
@@ -171,6 +169,7 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
                     // Call API district
                     const res = await searchLocation(info?.districtName);
                     res ? setIdDistrict(res.idDistrict) : setIdDistrict(null);
+                    setListenDblClick(Math.random());
                 }
             } catch (error) {
                 setIdDistrict(null);
@@ -191,16 +190,14 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
         const fetchData = async () => {
             try {
                 const data = await fetQuyHoachByIdDistrict(idDistrict);
-                if (data && data.length > 0) {
+                if (data && data.length > 0 && data[0]?.huyen_image !== '') {
                     if (data.length > 1) {
                         setPlanOption(data);
                     } else {
                         setSelectedIDQuyHoach(data[0]?.id);
                     }
                 } else {
-                    if (idDistrict) {
-                        messageApi.info('Không tìm thấy quy hoạch cho khu vực này');
-                    }
+                    messageApi.info('Không tìm thấy quy hoạch cho khu vực này');
                     setSelectedIDQuyHoach(null);
                 }
             } catch (error) {
@@ -210,7 +207,7 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
         };
 
         fetchData();
-    }, [idDistrict]);
+    }, [listenDblClick]);
 
     useEffect(() => {
         if (!idProvince) return;
@@ -249,7 +246,6 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
                 });
             });
     };
-    console.log(currentLocation, 'position');
     return (
         <>
             {contextHolder}

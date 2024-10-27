@@ -50,8 +50,6 @@ const DrawerView = ({ isDrawerVisible, closeDrawer, images, description, priceOn
         checkImages();
     }, [images]);
 
-    console.log('processed images', processedImages);
-
     const handleOpenPreview = (img) => {
         setPreviewOpen(true);
         setSelectedImage(img);

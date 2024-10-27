@@ -1,31 +1,26 @@
-import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom"
-import { callFetchPostById } from "../../services/api";
-import PostDetail from "./PostDetail";
+import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { callFetchPostById } from '../../services/api';
+import PostDetail from './PostDetail';
 
 const PostPage = () => {
-    const [dataPost, setDataPost] = useState([])
+    const [dataPost, setDataPost] = useState([]);
     let location = useLocation();
     let params = new URLSearchParams(location.search);
     const id = params?.get('id');
-    console.log("id raw :",id);
 
-
-
-    useEffect(()=>{
+    useEffect(() => {
         fetchPost(id);
-    },[id])
+    }, [id]);
 
-    const fetchPost = async(id) => {
+    const fetchPost = async (id) => {
         const res = await callFetchPostById(id);
-        if(res) {
-            console.log("raw:",res);
-            if(res.data.length > 0) {
+        if (res) {
+            if (res.data.length > 0) {
                 setDataPost(res.data[0]);
             }
-
         }
-    }
+    };
 
     // const getImages = (raw) => {
     //     const images = [];
@@ -53,12 +48,11 @@ const PostPage = () => {
     //     }
     //     return images;
     // }
-    // console.log('dataPost',dataPost)
-    return(
+    return (
         <>
-            <PostDetail dataPost={dataPost}/>
+            <PostDetail dataPost={dataPost} />
         </>
-    )
-}
+    );
+};
 
 export default PostPage;

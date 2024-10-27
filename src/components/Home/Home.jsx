@@ -58,9 +58,6 @@ function Home() {
     //     const searchParams = new URLSearchParams(location.search);
     //     const vitriParam = searchParams.get('vitri');
     //     const vitri = vitriParam ? vitriParam.split(',').map(Number) : [];
-    //     console.log('====================================');
-    //     console.log(vitri);
-    //     console.log('====================================');
     //     if (vitri.length === 2) {
     //       const fetchData = async () => {
     //         try {
@@ -132,7 +129,6 @@ function Home() {
     };
 
     const handleClick = useCallback((index) => {
-        console.log(index, 'index');
         setActiveItem(index);
         if (index === 3) {
             setIsModalVisible(true);

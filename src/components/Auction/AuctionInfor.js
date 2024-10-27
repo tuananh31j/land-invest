@@ -21,7 +21,6 @@ const AuctionInfor = () => {
   const [auctionInfor, setAuctionInfor] = useState(null);
   const [isShowModalComment, setIsShowModalComment] = useState(false)
   const [selectedLocation, setSelectedLocation] = useState(null);
-  console.log('selectedLocation',selectedLocation);
   const { BaseLayer } = LayersControl;
   const  hanoiCoordinates  = [21.0285, 105.8542] // toa do ha noi 
 
