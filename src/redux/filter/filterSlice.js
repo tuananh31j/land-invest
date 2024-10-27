@@ -13,7 +13,9 @@ const filtersSlice = createSlice({
     reducers: {
         setFilter(state, action) {
             const { category, id } = action.payload;
-           state[category] = state[category].includes(id) ? [] : [id]
+            if (state[category]) {
+                state[category] = state[category]?.includes(id) ? [] : [id];
+            }
         },
         clearFilter(state, action) {
             const { category } = action.payload;

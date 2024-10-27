@@ -103,10 +103,10 @@ const LayoutAdmin = () => {
     // const dispatch = useDispatch();
 
     // useEffect(()=> {
-    //     if(window.location.pathname.includes('/book')){
+    //     if(window.location.pathname?.includes('/book')){
     //         setActiveMenu('book');
     //     }
-    //     if(window.location.pathname.includes('/admin/user')){
+    //     if(window.location.pathname?.includes('/admin/user')){
     //         setActiveMenu('crud');
     //     }
     // },[])

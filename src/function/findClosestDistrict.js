@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from 'axios';
 
 export const findClosestDistrict = async (provinceId, districtName) => {
     try {
@@ -12,8 +12,8 @@ export const findClosestDistrict = async (provinceId, districtName) => {
             const words2 = name2.split(' ');
             let matchCount = 0;
 
-            words1.forEach(word => {
-                if (words2.includes(word)) matchCount++;
+            words1.forEach((word) => {
+                if (words2?.includes(word)) matchCount++;
             });
 
             return matchCount / Math.max(words1.length, words2.length);
@@ -22,7 +22,7 @@ export const findClosestDistrict = async (provinceId, districtName) => {
         let closestDistrict = null;
         let highestSimilarity = 0;
 
-        districts.forEach(district => {
+        districts.forEach((district) => {
             const normalizedDistrictName = district.DistrictName.toLowerCase().replace(/[^\w\s]/gi, '');
             const similarity = calculateSimilarity(normalizedSearchName, normalizedDistrictName);
 
@@ -37,21 +37,20 @@ export const findClosestDistrict = async (provinceId, districtName) => {
                 found: true,
                 districtId: closestDistrict.DistrictID,
                 districtName: closestDistrict.DistrictName,
-                similarity: highestSimilarity
+                similarity: highestSimilarity,
             };
         } else {
             return {
                 found: false,
-                message: 'Không tìm thấy quận/huyện phù hợp'
+                message: 'Không tìm thấy quận/huyện phù hợp',
             };
         }
-
     } catch (error) {
         console.error('Lỗi khi tìm quận/huyện:', error);
         return {
             found: false,
             message: 'Lỗi khi tìm quận/huyện',
-            error: error.message
+            error: error.message,
         };
     }
 };

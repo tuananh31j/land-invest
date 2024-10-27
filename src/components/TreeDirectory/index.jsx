@@ -150,7 +150,7 @@ const TreeDirectory = () => {
 
         const filterNodes = (nodes, parentMatched = false) => {
             return nodes.reduce((acc, node) => {
-                const nodeMatch = removeAccents(node.title.toLowerCase()).includes(normalizedTerm);
+                const nodeMatch = removeAccents(node.title.toLowerCase())?.includes(normalizedTerm);
                 const filteredChildren = node.children ? filterNodes(node.children, nodeMatch || parentMatched) : [];
 
                 if (nodeMatch || filteredChildren.length > 0 || parentMatched) {
@@ -180,6 +180,7 @@ const TreeDirectory = () => {
         setExpandedKeys(expandedKeysValue);
         setAutoExpandParent(false);
     };
+    // console.log(treeData, 'treeData gggfdgdfg');
 
     return (
         <>

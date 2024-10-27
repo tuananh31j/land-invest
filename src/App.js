@@ -119,8 +119,7 @@ function App() {
         },
     ];
 
-    // if (datauser?.role === true) {
-    if (true) {
+    if (datauser?.role === true) {
         item.unshift({
             path: '/admin',
             element: <LayoutAdmin />,

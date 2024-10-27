@@ -100,7 +100,7 @@ const ModalPriceFilter = (props) => {
                             title={item.title}
                             id={item.id}
                             color
-                            checked={selectedFilters.house.includes(item.id)}
+                            checked={selectedFilters.house?.includes(item.id)}
                             onChange={() => handleCheckboxChange('house', item.id)}
                         />
                     ))}
@@ -114,7 +114,7 @@ const ModalPriceFilter = (props) => {
                             key={item.id}
                             title={item.title}
                             id={item.id}
-                            checked={selectedFilters.priceOnM2.includes(item.id)}
+                            checked={selectedFilters.priceOnM2?.includes(item.id)}
                             onChange={() => handleCheckboxChange('priceOnM2', item.id)}
                         />
                     ))}
@@ -127,7 +127,7 @@ const ModalPriceFilter = (props) => {
                             key={item.id}
                             title={item.title}
                             id={item.id}
-                            checked={selectedFilters.date.includes(item.id)}
+                            checked={selectedFilters.date?.includes(item.id)}
                             onChange={() => handleCheckboxChange('date', item.id)}
                         />
                     ))}
@@ -141,7 +141,7 @@ const ModalPriceFilter = (props) => {
                             title={item.title}
                             id={item.id}
                             color
-                            checked={selectedFilters.landArea.includes(item.id)}
+                            checked={selectedFilters.landArea?.includes(item.id)}
                             onChange={() => handleCheckboxChange('landArea', item.id)}
                         />
                     ))}
@@ -154,7 +154,7 @@ const ModalPriceFilter = (props) => {
                             key={item.id}
                             title={item.title}
                             id={item.id}
-                            checked={selectedFilters.priceRange.includes(item.id)}
+                            checked={selectedFilters.priceRange?.includes(item.id)}
                             onChange={() => handleCheckboxChange('priceRange', item.id)}
                         />
                     ))}

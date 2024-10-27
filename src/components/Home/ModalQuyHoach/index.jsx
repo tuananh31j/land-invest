@@ -76,7 +76,7 @@ const ModalQuyHoach = (props) => {
     }, [selectedIDQuyHoach]);
 
     const handleChangeIDQuyHoach = (id) => {
-        if (selectedIDQuyHoach.includes(id)) {
+        if (selectedIDQuyHoach?.includes(id)) {
             setSelectedIDQuyHoach(selectedIDQuyHoach.filter((item) => item !== id));
         } else {
             setSelectedIDQuyHoach([...selectedIDQuyHoach, id]);
@@ -132,7 +132,7 @@ const ModalQuyHoach = (props) => {
                         <PlanMapSection
                             key={item.id}
                             quyhoach={item}
-                            checked={selectedIDQuyHoach.includes(item.id)}
+                            checked={selectedIDQuyHoach?.includes(item.id)}
                             onChange={() => handleChangeIDQuyHoach(item.id)}
                         />
                     ))}

@@ -31,6 +31,7 @@ import { AimOutlined } from '@ant-design/icons';
 import { useDispatch } from 'react-redux';
 import { backToMyLocation } from '../../redux/search/searchSlice';
 import useGetMyLocation from '../Hooks/useGetMyLocation';
+import fetchProvinceName from '../../function/findProvince';
 
 let DefaultIcon = L.icon({
     iconUrl: icon,
@@ -153,10 +154,20 @@ function Home() {
     const myLoca = useGetMyLocation();
 
     const searchParams = new URLSearchParams(location.search);
-    const handleBackToMyLocation = () => {
-        dispatch(backToMyLocation({ lat: myLoca.lat, lon: myLoca.lng }));
-        searchParams.set('vitri', `${myLoca.lat},${myLoca.lng}`);
-        navigate({ search: searchParams.toString() });
+    const handleBackToMyLocation = async () => {
+        try {
+            if (myLoca.lat && myLoca.lng) {
+                const info = await fetchProvinceName(myLoca.lat, myLoca.lng);
+                handleSetProvinceName(info);
+                dispatch(backToMyLocation({ lat: myLoca.lat, lon: myLoca.lng }));
+                searchParams.set('vitri', `${myLoca.lat},${myLoca.lng}`);
+                navigate({ search: searchParams.toString() });
+            } else {
+                message.error('Không thể xác định vị trí của bạn');
+            }
+        } catch (error) {
+            console.log(error);
+        }
     };
     const buttonRef = useRef();
 

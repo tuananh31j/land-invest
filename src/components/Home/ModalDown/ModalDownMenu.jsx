@@ -58,7 +58,7 @@ const ModalDownMenu = ({ handleClose, show }) => {
     //         if (debouncedInputSearch) {
     //             setIsLoading(true);
     //             const result = listQuyHoach.filter((item) =>
-    //                 removeAccents(item.description.toLowerCase()).includes(removeAccents(debouncedInputSearch.toLowerCase()))
+    //                 removeAccents(item.description.toLowerCase())?.includes(removeAccents(debouncedInputSearch.toLowerCase()))
     //             );
     //             setSearchResult(result);
     //             setIsLoading(false);
@@ -70,7 +70,7 @@ const ModalDownMenu = ({ handleClose, show }) => {
     // }, [debouncedInputSearch, listQuyHoach]);
 
     // const handleChangeIDQuyHoach = (id) => {
-    //     if (selectedIDQuyHoach.includes(id)) {
+    //     if (selectedIDQuyHoach?.includes(id)) {
     //         setSelectedIDQuyHoach(selectedIDQuyHoach.filter((item) => item !== id));
     //     } else {
     //         setSelectedIDQuyHoach([...selectedIDQuyHoach, id]);
@@ -131,7 +131,7 @@ const ModalDownMenu = ({ handleClose, show }) => {
                         <PlanMapSection
                             key={item.id}
                             quyhoach={item}
-                            checked={selectedIDQuyHoach.includes(item.id)}
+                            checked={selectedIDQuyHoach?.includes(item.id)}
                             onChange={() => handleChangeIDQuyHoach(item.id)}
                         />
                     ))} */}

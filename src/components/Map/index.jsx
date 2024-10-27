@@ -26,7 +26,7 @@ const customIcon = new L.Icon({
 });
 
 const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosition, setIdDistrict, idDistrict }) => {
-    const [listenDblClick, setListenDblClick] = useState(0);
+    const [listenDblClick, setListenDblClick] = useState(false);
     const [idProvince, setIdProvince] = useState();
     const [polygon, setPolygon] = useState(null);
     const [selectedMarker, setSelectedMarker] = useState(null);
@@ -63,14 +63,14 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
         vitri && vitri.length > 0 && setPosition(vitri.split(',').map(Number));
     }, [locationLink.search]);
 
-    // useEffect(() => {
-    //     if (position.length === 2) {
-    //         const map = document.querySelector('.leaflet-container')?.leafletElement;
-    //         if (map) {
-    //             map.setView(position);
-    //         }
-    //     }
-    // }, [position]);
+    useEffect(() => {
+        if (position.length === 2) {
+            const map = document.querySelector('.leaflet-container')?.leafletElement;
+            if (map) {
+                map.setView(position);
+            }
+        }
+    }, [position]);
     const MapEvents = () => {
         const map = useMapEvents({
             moveend: async (e) => {
@@ -103,22 +103,6 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
                     }
                 }
             },
-            // click: async (e) => {
-            //     const { lat, lng } = e.latlng;
-            //     map.setView([lat, lng]);
-            //     setSelectedPosition({ lat, lng });
-            //     const info = await fetchProvinceName(lat, lng);
-            //     handleSetProvinceName(info);
-
-            //     setLocationInfo({ districtName: info.districtName, provinceName: info.provinceName, lat, lng });
-
-            //     try {
-            //         const res = await searchLocation(info?.districtName);
-            //         res ? setIdDistrict(res.idDistrict) : setIdDistrict(null);
-            //     } catch (error) {
-            //         setIdDistrict(null);
-            //     }
-            // },
             dblclick: debounce(
                 async (e) => {
                     const { lat, lng } = e.latlng;
@@ -128,10 +112,6 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
                     try {
                         // Call API province
                         const info = await fetchProvinceName(lat, lng);
-                        // const fetchDebouncedProvinceName = debounce(async (lat, lng) => {
-                        //     const info = await fetchProvinceName(lat, lng);
-                        //     return info;
-                        //   }, 1000);
                         handleSetProvinceName(info);
                         // Update position info
                         setLocationInfo({ districtName: info.districtName, provinceName: info.provinceName, lat, lng });
@@ -152,30 +132,6 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
 
         return null;
     };
-    useEffect(() => {
-        (async () => {
-            try {
-                // Call API province
-                const vitri = searchParams.get('vitri').split(',');
-                if (vitri.length > 0) {
-                    const lat = parseFloat(vitri[0]);
-                    const lng = parseFloat(vitri[1]);
-                    const info = await fetchProvinceName(lat, lng);
-                    handleSetProvinceName(info);
-
-                    // Update position info
-                    setLocationInfo({ districtName: info.districtName, provinceName: info.provinceName, lat, lng });
-
-                    // Call API district
-                    const res = await searchLocation(info?.districtName);
-                    res ? setIdDistrict(res.idDistrict) : setIdDistrict(null);
-                    setListenDblClick(Math.random());
-                }
-            } catch (error) {
-                setIdDistrict(null);
-            }
-        })();
-    }, []);
 
     // useEffect(() => {
     //     setPolygon(
@@ -197,7 +153,9 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
                         setSelectedIDQuyHoach(data[0]?.id);
                     }
                 } else {
-                    messageApi.info('Không tìm thấy quy hoạch cho khu vực này');
+                    if (idDistrict && listenDblClick) {
+                        messageApi.info('Không tìm thấy quy hoạch cho khu vực này');
+                    }
                     setSelectedIDQuyHoach(null);
                 }
             } catch (error) {
@@ -208,6 +166,31 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
 
         fetchData();
     }, [listenDblClick]);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                // Call API province
+                const vitri = searchParams.get('vitri').split(',');
+                if (vitri.length > 0) {
+                    const lat = parseFloat(vitri[0]);
+                    const lng = parseFloat(vitri[1]);
+                    const info = await fetchProvinceName(lat, lng);
+                    handleSetProvinceName(info);
+                    dispatch(setCurrentLocation({ lat, lon: lng }));
+                    // Update position info
+                    setLocationInfo({ districtName: info.districtName, provinceName: info.provinceName, lat, lng });
+
+                    // Call API district
+                    const res = await searchLocation(info?.districtName);
+                    res ? setIdDistrict(res.idDistrict) : setIdDistrict(null);
+                    setListenDblClick(Math.random());
+                }
+            } catch (error) {
+                setIdDistrict(null);
+            }
+        })();
+    }, []);
 
     useEffect(() => {
         if (!idProvince) return;
@@ -271,7 +254,7 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
                 zoom={initialZoom}
                 maxZoom={30}
             >
-                <UserLocationMarker />
+                {/* <UserLocationMarker /> */}
                 <MapEvents />
                 {currentLocation && <ResetCenterView lat={currentLocation.lat} lon={currentLocation.lon} />}
                 {/* {
