@@ -5,7 +5,7 @@ export const findClosestDistrict = async (provinceId, districtName) => {
         const response = await axios.get(`https://apilandinvest.gachmen.org/api/districts/Byprovince/${provinceId}`);
         const districts = response.data;
 
-        const normalizedSearchName = districtName.toLowerCase().replace(/[^\w\s]/gi, '');
+        const normalizedSearchName = districtName.toLowerCase()?.replace(/[^\w\s]/gi, '');
 
         const calculateSimilarity = (name1, name2) => {
             const words1 = name1.split(' ');
@@ -23,7 +23,7 @@ export const findClosestDistrict = async (provinceId, districtName) => {
         let highestSimilarity = 0;
 
         districts.forEach((district) => {
-            const normalizedDistrictName = district.DistrictName.toLowerCase().replace(/[^\w\s]/gi, '');
+            const normalizedDistrictName = district.DistrictName?.toLowerCase()?.replace(/[^\w\s]/gi, '');
             const similarity = calculateSimilarity(normalizedSearchName, normalizedDistrictName);
 
             if (similarity > highestSimilarity) {

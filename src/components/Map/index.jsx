@@ -12,11 +12,13 @@ import { setListMarker } from '../../redux/listMarker/listMarkerSllice';
 import useMapParams from '../../hooks/useMapParams';
 import { FaShareAlt } from 'react-icons/fa';
 import { message, Modal, Radio } from 'antd';
-import { fetchListInfo, fetQuyHoachByIdDistrict, searchLocation } from '../../services/api';
+import { fetchAllProvince, fetchListInfo, fetQuyHoachByIdDistrict, searchLocation } from '../../services/api';
 import useGetParams from '../Hooks/useGetParams';
 import { setCurrentLocation } from '../../redux/search/searchSlice';
 import UserLocationMarker from '../UserLocationMarker';
-import { debounce, throttle } from 'lodash';
+import { debounce } from 'lodash';
+import { getIdsProvinceByNames } from '../../function/getIdsProvinceByNames';
+import { getBoundaries } from '../../function/getBoundaries';
 
 const customIcon = new L.Icon({
     iconUrl: require('../../assets/marker.png'),
@@ -25,59 +27,50 @@ const customIcon = new L.Icon({
     popupAnchor: [-3, -38],
 });
 
-const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosition, setIdDistrict, idDistrict }) => {
+const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }) => {
+    const [isOverview, setIsOverview] = useState(false);
     const [listenDblClick, setListenDblClick] = useState(false);
     const [idProvince, setIdProvince] = useState();
-    const [polygon, setPolygon] = useState(null);
+    const [polygons, setPolygons] = useState([]);
     const [selectedMarker, setSelectedMarker] = useState(null);
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
     const [selectedIDQuyHoach, setSelectedIDQuyHoach] = useState(null);
-    const [locationInfo, setLocationInfo] = useState();
+    // const [locationInfo, setLocationInfo] = useState();
     const [planOption, setPlanOption] = useState([]);
     const searchParams = useGetParams();
-
     const locationLink = useLocation();
     const dispatch = useDispatch();
     const listMarker = useSelector(selectFilteredMarkers);
-    // const { coordinates } = useSelector((state) => state.searchQuery.searchResult);
+    const currentLocation = useSelector((state) => state.searchQuery.searchResult);
     const [messageApi, contextHolder] = message.useMessage();
     const [quyhoachIds, setQuyhoachIds] = useState([]);
-    const [position, setPosition] = useState([]);
-    const currentLocation = useSelector((state) => state.searchQuery.searchResult);
-    useEffect(() => {
-        const newQuyhoachIds =
-            new URLSearchParams(locationLink.search)
-                .get('quyhoach')
-                ?.split(',')
-                .map((id) => parseInt(id, 10)) || [];
+    const { initialCenter, initialZoom } = useMapParams();
+    // const [position, setPosition] = useState([]);
 
-        setQuyhoachIds(newQuyhoachIds);
-    }, [locationLink.search]);
+    // useEffect(() => {
+    //     const searchParams = new URLSearchParams(locationLink.search);
+    //     const vitri = searchParams.get('vitri');
+    //     vitri && vitri.length > 0 && setPosition(vitri.split(',').map(Number));
+    // }, [locationLink.search]);
 
+    // useEffect(() => {
+    //     if (position.length === 2) {
+    //         const map = document.querySelector('.leaflet-container')?.leafletElement;
+    //         if (map) {
+    //             map.setView(position);
+    //         }
+    //     }
+    // }, [position]);
     const closeDrawer = () => setIsDrawerVisible(false);
 
-    const { initialCenter, initialZoom } = useMapParams();
-    useEffect(() => {
-        const searchParams = new URLSearchParams(locationLink.search);
-        const vitri = searchParams.get('vitri');
-        vitri && vitri.length > 0 && setPosition(vitri.split(',').map(Number));
-    }, [locationLink.search]);
-
-    useEffect(() => {
-        if (position.length === 2) {
-            const map = document.querySelector('.leaflet-container')?.leafletElement;
-            if (map) {
-                map.setView(position);
-            }
-        }
-    }, [position]);
     const MapEvents = () => {
         const map = useMapEvents({
             moveend: async (e) => {
                 const map = e.target;
                 const center = map.getCenter();
                 const zoom = map.getZoom();
-                dispatch(setCurrentLocation({ lat: center.lat, lon: center.lng }));
+                const info = await fetchProvinceName(center.lat, center.lng);
+
                 const searchParams = new URLSearchParams(locationLink.search);
                 searchParams.set('vitri', `${center.lat},${center.lng}`);
                 searchParams.set('zoom', `${zoom}`);
@@ -86,9 +79,8 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
                 window.history.replaceState({}, '', newUrl);
 
                 if (zoom >= 8) {
-                    const locationInfo = await fetchProvinceName(center.lat, center.lng);
-                    // const res = await getProvince(locationInfo.provinceName);
-                    // const data = await findClosestDistrict(res.TinhThanhPhoID, locationInfo.districtName);
+                    // const res = await getProvince(info.provinceName);
+                    // const data = await findClosestDistrict(res.TinhThanhPhoID, info.districtName);
                     // if (data.found) {
                     //     setIdProvince(data.districtId);
                     //     // dispatch(setDistrictId(data.districtId));
@@ -96,7 +88,7 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
                     //     console.log(data.message);
                     // }
                     try {
-                        const res = await searchLocation(locationInfo?.districtName);
+                        const res = await searchLocation(info?.districtName);
                         res ? setIdProvince(res.idDistrict) : setIdDistrict(null);
                     } catch (error) {
                         setIdDistrict(null);
@@ -105,17 +97,23 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
             },
             dblclick: debounce(
                 async (e) => {
-                    const { lat, lng } = e.latlng;
+                    const { lat, lng } = e?.latlng;
                     map.setView([lat, lng]);
                     setSelectedPosition({ lat, lng });
 
                     try {
                         // Call API province
                         const info = await fetchProvinceName(lat, lng);
-                        handleSetProvinceName(info);
                         // Update position info
-                        setLocationInfo({ districtName: info.districtName, provinceName: info.provinceName, lat, lng });
-
+                        // setLocationInfo({ districtName: info.districtName, provinceName: info.provinceName, lat, lng });
+                        dispatch(
+                            setCurrentLocation({
+                                lat,
+                                lon: lng,
+                                provinceName: info.provinceName,
+                                districtName: info.districtName,
+                            }),
+                        );
                         // Call API district
                         const res = await searchLocation(info?.districtName);
                         res ? setIdDistrict(res.idDistrict) : setIdDistrict(null);
@@ -127,14 +125,43 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
                 500,
                 { leading: false, trailing: true },
             ),
+            zoomend: async () => {
+                const zoom = map.getZoom();
+                if (zoom < 14) {
+                    setIsOverview(true);
+                } else {
+                    setIsOverview(false);
+                }
+            },
         });
         map.doubleClickZoom.disable();
 
         return null;
     };
+    useEffect(() => {
+        const newQuyhoachIds =
+            new URLSearchParams(locationLink.search)
+                .get('quyhoach')
+                ?.split(',')
+                .map((id) => parseInt(id, 10)) || [];
+
+        setQuyhoachIds(newQuyhoachIds);
+    }, [locationLink.search]);
+
+    useEffect(() => {
+        (async () => {
+            const provinces = await fetchAllProvince();
+            const provinceNames = provinces.map((province) => province.TenTinhThanhPho);
+            const ids = await getIdsProvinceByNames(provinceNames);
+            const boundaries = await getBoundaries(ids);
+            if (boundaries) {
+                setPolygons(boundaries.flat());
+            }
+        })();
+    }, []);
 
     // useEffect(() => {
-    //     setPolygon(
+    //     setPolygons(
     //         coordinates && coordinates.length > 0 && Array.isArray(coordinates[0])
     //             ? coordinates[0].map((coord) => [coord[1], coord[0]])
     //             : null,
@@ -142,6 +169,13 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
     // }, [coordinates]);
 
     // Get plan id by district id
+
+    // useEffect(() => {
+    //     (async () => {
+    //         const res = await fetchAllQuyHoach();
+    //         setList(res);
+    //     })();
+    // }, []);
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -166,19 +200,27 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
 
         fetchData();
     }, [listenDblClick]);
+
     useEffect(() => {
         (async () => {
             try {
                 // Call API province
                 const vitri = searchParams.get('vitri').split(',');
-                if (vitri.length > 0) {
+                console.log(vitri, 'vitri');
+                if (vitri && vitri.length > 0) {
                     const lat = parseFloat(vitri[0]);
                     const lng = parseFloat(vitri[1]);
                     const info = await fetchProvinceName(lat, lng);
-                    handleSetProvinceName(info);
-                    dispatch(setCurrentLocation({ lat, lon: lng }));
+                    dispatch(
+                        setCurrentLocation({
+                            lat,
+                            lon: lng,
+                            provinceName: info.provinceName,
+                            districtName: info.districtName,
+                        }),
+                    );
                     // Update position info
-                    setLocationInfo({ districtName: info.districtName, provinceName: info.provinceName, lat, lng });
+                    // setLocationInfo({ districtName: info.districtName, provinceName: info.provinceName, lat, lng });
 
                     // Call API district
                     const res = await searchLocation(info?.districtName);
@@ -204,7 +246,7 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
         };
 
         fetchData();
-    }, [dispatch, idProvince]);
+    }, [idProvince]);
 
     const handleShareClick = (lat, lng) => {
         const urlParams = new URLSearchParams(locationLink.search);
@@ -252,8 +294,9 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
                 center={initialCenter}
                 zoom={initialZoom}
                 maxZoom={30}
+                ref={mapRef}
             >
-                {/* <UserLocationMarker /> */}
+                <UserLocationMarker />
                 <MapEvents />
                 {currentLocation && <ResetCenterView lat={currentLocation.lat} lon={currentLocation.lon} />}
                 {/* {
@@ -289,7 +332,7 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
                             key={index}
                             url={`https://apilandinvest.gachmen.org/get_api_quyhoach/${item}/{z}/{x}/{y}`}
                             pane="overlayPane"
-                            minZoom={12}
+                            minZoom={1}
                             maxZoom={18}
                             opacity={opacity}
                         />
@@ -304,19 +347,19 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
                         />
                     )}
                 </Pane>
-                {selectedPosition && locationInfo && (
-                    <Marker position={selectedPosition} icon={customIcon}>
+                {currentLocation && currentLocation.lat && currentLocation.lon && (
+                    <Marker position={[currentLocation.lat, currentLocation.lon]} icon={customIcon}>
                         <Popup>
                             <div>
                                 <h3 style={{ fontWeight: 600 }}>
-                                    Tỉnh {locationInfo?.provinceName}, Huyện {locationInfo?.districtName}
+                                    Tỉnh {currentLocation?.provinceName}, Huyện {currentLocation?.districtName}
                                 </h3>
                                 <p>
-                                    Vị trí: {locationInfo?.lat.toFixed(5)}, {locationInfo?.lng.toFixed(5)}
+                                    Vị trí: {currentLocation?.lat}, {currentLocation?.lon}
                                 </p>
                                 <button
                                     className="button--share"
-                                    onClick={() => handleShareClick(locationInfo?.lat, locationInfo?.lng)}
+                                    onClick={() => handleShareClick(currentLocation?.lat, currentLocation?.lon)}
                                 >
                                     <FaShareAlt />
                                     Chia sẻ
@@ -353,7 +396,7 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
                         </Popup>
                     </Marker>
                 ))}
-                {polygon && <Polygon pathOptions={{ fillColor: 'transparent' }} positions={polygon} />}
+                {/* {polygon && <Polygon pathOptions={{ fillColor: 'transparent' }} positions={polygon} />} */}
                 {selectedMarker && (
                     <DrawerView
                         isDrawerVisible={isDrawerVisible}
@@ -366,6 +409,11 @@ const Map = ({ opacity, handleSetProvinceName, setSelectedPosition, selectedPosi
                         area={selectedMarker.area}
                     />
                 )}
+                {polygons.length > 0 &&
+                    isOverview &&
+                    polygons.map((polygon) => (
+                        <Polygon positions={polygon} key={polygon[0]} color="pink" fillColor="pink" fillOpacity={0.5} />
+                    ))}
             </MapContainer>
         </>
     );

@@ -1,17 +1,8 @@
 import './ModalDownMenu.scss';
-import { IoIosCheckboxOutline } from 'react-icons/io';
-import { MdCheckBoxOutlineBlank } from 'react-icons/md';
 import { memo, useRef, useState } from 'react';
 import { Modal } from 'antd';
 import Draggable from 'react-draggable';
-import {
-    filterByDate,
-    filterByHouse,
-    filterByLandArea,
-    filterByPriceOnM2,
-    filterByPriceRange,
-} from '../../../constants/filter';
-import { CheckSquareIcon } from '../../Icons';
+import { filterByDate, filterByHouse, filterByLandArea, filterByPriceRange } from '../../../constants/filter';
 import Checkbox from '../../Checkbox';
 import { useDispatch, useSelector } from 'react-redux';
 import { setFilter } from '../../../redux/filter/filterSlice';
@@ -82,8 +73,6 @@ const ModalPriceFilter = (props) => {
                     onMouseOut={() => {
                         setDisabled(true);
                     }}
-                    // fix eslintjsx-a11y/mouse-events-have-key-events
-                    // https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/master/docs/rules/mouse-events-have-key-events.md
                     onFocus={() => {}}
                     onBlur={() => {}}
                     // end

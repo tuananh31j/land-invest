@@ -144,7 +144,7 @@ export const fetQuyHoachByIdDistrict = async (districtId) => {
 
 export const searchLocation = async (districtName) => {
     try {
-        let apiName = removeAccents(districtName.toLowerCase());
+        let apiName = removeAccents(districtName?.toLowerCase());
 
         if (apiName === 'south tu liem') {
             apiName = 'nam tu liem';

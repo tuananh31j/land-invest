@@ -8,6 +8,9 @@ import { LoadingOutlined } from '@ant-design/icons';
 import Search from 'antd/es/input/Search';
 import { getBoundingBoxCenterFromString } from '../../function/getCenterByBoundingbox';
 import axios from 'axios';
+import { useDispatch } from 'react-redux';
+import { setCurrentLocation } from '../../redux/search/searchSlice';
+import fetchProvinceName from '../../function/findProvince';
 
 const TreeDirectory = () => {
     const [treeData, setTreeData] = useState([]);
@@ -22,7 +25,7 @@ const TreeDirectory = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const searchParams = new URLSearchParams(location.search);
-
+    const dispatch = useDispatch();
     useEffect(() => {
         fetchProvinces();
         const quyhoachParams = searchParams.get('quyhoach');
@@ -129,6 +132,15 @@ const TreeDirectory = () => {
 
                 const { data } = await axios.get(`https://apilandinvest.gachmen.org/quyhoach1quan/${id}`);
                 const { centerLatitude, centerLongitude } = getBoundingBoxCenterFromString(data[0]?.boundingbox);
+                const info = await fetchProvinceName(centerLatitude, centerLongitude);
+                dispatch(
+                    setCurrentLocation({
+                        lat: centerLatitude,
+                        lon: centerLongitude,
+                        provinceName: info.provinceName,
+                        districtName: info.districtName,
+                    }),
+                );
 
                 searchParams.set('quyhoach', quyhoachIds.toString());
                 searchParams.set('vitri', `${centerLatitude},${centerLongitude}`);
@@ -145,12 +157,12 @@ const TreeDirectory = () => {
 
     const filterTreeData = (searchTerm) => {
         setLoadingSearch(true);
-        const normalizedTerm = removeAccents(searchTerm.toLowerCase());
+        const normalizedTerm = removeAccents(searchTerm?.toLowerCase());
         const expandedKeysSet = new Set();
 
         const filterNodes = (nodes, parentMatched = false) => {
             return nodes.reduce((acc, node) => {
-                const nodeMatch = removeAccents(node.title.toLowerCase())?.includes(normalizedTerm);
+                const nodeMatch = removeAccents(node.title?.toLowerCase())?.includes(normalizedTerm);
                 const filteredChildren = node.children ? filterNodes(node.children, nodeMatch || parentMatched) : [];
 
                 if (nodeMatch || filteredChildren.length > 0 || parentMatched) {
@@ -180,7 +192,6 @@ const TreeDirectory = () => {
         setExpandedKeys(expandedKeysValue);
         setAutoExpandParent(false);
     };
-    // console.log(treeData, 'treeData gggfdgdfg');
 
     return (
         <>

@@ -1,10 +1,10 @@
 export const getBoundingBoxCenterFromString = (boundingbox) => {
-    let coordinates
+    let coordinates;
 
     if (typeof boundingbox === 'string') {
         try {
             if (boundingbox.startsWith('[') && boundingbox.endsWith(']')) {
-                boundingbox = boundingbox.replace(/^\[|\]$/g, '');
+                boundingbox = boundingbox?.replace(/^\[|\]$/g, '');
                 coordinates = boundingbox.split(',').map(Number);
             } else {
                 coordinates = boundingbox.split(',').map(Number);

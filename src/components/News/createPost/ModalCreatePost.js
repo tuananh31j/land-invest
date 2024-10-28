@@ -188,7 +188,6 @@ const ModalCreatePost = (props) => {
                     },
                 },
             );
-            console.log('res', res.data);
             setIsLoading(false);
             if (res.data) {
                 message.success('Added new post successfully');

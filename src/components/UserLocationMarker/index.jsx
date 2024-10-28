@@ -1,19 +1,31 @@
-import { Marker, Popup, useMap } from 'react-leaflet';
+import { Marker, Popup } from 'react-leaflet';
 import useGetMyLocation from '../Hooks/useGetMyLocation';
 import { useEffect } from 'react';
 import useGetParams from '../Hooks/useGetParams';
+import { useDispatch } from 'react-redux';
+import { backToMyLocation } from '../../redux/search/searchSlice';
+import fetchProvinceName from '../../function/findProvince';
 
 const UserLocationMarker = () => {
     const { lat, lng } = useGetMyLocation();
     const searchParams = useGetParams();
     const currentPositon = searchParams.get('vitri') ? searchParams.get('vitri').split(',') : [];
-    const map = useMap();
-
+    const dispatch = useDispatch();
     useEffect(() => {
-        const hasPositon = currentPositon.length === 2;
-        if (lat && lng && !hasPositon) {
-            map.setView([lat, lng], 13); // Di chuyển bản đồ đến vị trí của người dùng
-        }
+        (async () => {
+            const hasPositon = currentPositon.length === 2;
+            if (lat && lng && !hasPositon) {
+                const info = await fetchProvinceName(lat, lng);
+                dispatch(
+                    backToMyLocation({
+                        lat,
+                        lon: lng,
+                        provinceName: info.provinceName,
+                        districtName: info.districtName,
+                    }),
+                );
+            }
+        })();
     }, [lat, lng]);
 
     // Kiểm tra nếu không có vị trí thì không render Marker

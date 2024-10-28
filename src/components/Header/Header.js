@@ -18,6 +18,7 @@ import { useDebounce } from 'use-debounce';
 import { doSearch } from '../../redux/search/searchSlice';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { ActionIcon, HomeIcon, NewsIcon, SearchIcon, SearchNavbarIcon, NotificationIcon } from '../Icons';
+import fetchProvinceName from '../../function/findProvince';
 
 const NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org/search?';
 const params = {
@@ -121,7 +122,7 @@ const Header = () => {
 
             setSearchResult(filteredData);
             handleSearchDispatch(filteredData[0]);
-
+            setSearchQuery('');
             setIsLoading(false);
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -131,18 +132,25 @@ const Header = () => {
         }
     };
     // Search
-    const handleSearchDispatch = (item) => {
-        dispatch(
-            doSearch({
-                displayName: item.display_name,
-                lat: item.lat,
-                lon: item.lon,
-                coordinates: item.geojson.coordinates,
-                boundingbox: item.boundingbox,
-            }),
-        );
-        searchParams.set('vitri', `${item.lat},${item.lon}`);
-        navigate({ search: searchParams.toString() });
+    const handleSearchDispatch = async (item) => {
+        try {
+            const info = await fetchProvinceName(item.lat, item.lon);
+            dispatch(
+                doSearch({
+                    displayName: item.display_name,
+                    lat: item.lat,
+                    lon: item.lon,
+                    coordinates: item.geojson.coordinates,
+                    boundingbox: item.boundingbox,
+                    provinceName: info.provinceName,
+                    districtName: info.districtName,
+                }),
+            );
+            searchParams.set('vitri', `${item.lat},${item.lon}`);
+            navigate({ search: searchParams.toString() });
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
     };
 
     useEffect(() => {

@@ -1,8 +1,8 @@
 export const parseCoordination = (coordinationString) => {
     try {
         // Loại bỏ ký tự xuống dòng và khoảng trắng thừa
-        const cleanedString = coordinationString.replace(/\s/g, '');
-        
+        const cleanedString = coordinationString?.replace(/\s/g, '');
+
         // Parse chuỗi JSON
         const parsedArray = JSON.parse(cleanedString);
 

@@ -1,7 +1,9 @@
-import { createSlice, current } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 
 const defaultLocation = {
-    displayName: 'Hà Nội, Vietnam',
+    displayName: 'Hà Nội, Đông Anh',
+    provinceName: 'Hà Nội',
+    districtName: 'Đông Anh',
     lat: '21.0283334',
     lon: '105.854041',
 };

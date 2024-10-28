@@ -25,10 +25,10 @@ import ModalUploadImage from './ModalUploadImage';
 import 'leaflet/dist/leaflet.css';
 
 import Map from '../Map';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import ModalQuyHoach from './ModalQuyHoach';
 import { AimOutlined } from '@ant-design/icons';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { backToMyLocation } from '../../redux/search/searchSlice';
 import useGetMyLocation from '../Hooks/useGetMyLocation';
 import fetchProvinceName from '../../function/findProvince';
@@ -48,10 +48,13 @@ function Home() {
     const [isModalUpLoadVisible, setIsModalUploadVisible] = useState(false);
     const [isShowModalPrice, setIsShowModalPrice] = useState(false);
     const [isShowModalQuyhoach, setIsShowModalQuyhoach] = useState(false);
-    const [provinceName, setProvinceName] = useState('');
     const [idDistrict, setIdDistrict] = useState(null);
-
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const myLoca = useGetMyLocation();
     const [messageApi, contextHolder] = message.useMessage();
+    const { districtName, provinceName } = useSelector((state) => state.searchQuery.searchResult);
+    const mapRef = useRef();
 
     const location = useLocation();
 
@@ -112,10 +115,6 @@ function Home() {
         setOpacity(event.target.value);
     };
 
-    const handleSetProvinceName = (locationInfo) => {
-        setProvinceName(locationInfo);
-    };
-
     const handleLocationArrowClick = () => {
         if (!selectedPosition) {
             message.success('Vui lòng chọn vị trí bạn muốn tìm');
@@ -149,19 +148,26 @@ function Home() {
         setIsShowModalQuyhoach(false);
         setActiveItem(0);
     };
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const myLoca = useGetMyLocation();
-
-    const searchParams = new URLSearchParams(location.search);
+    const [searchParams, setSearchParams] = useSearchParams();
+    // const searchParams = new URLSearchParams(location.search);
     const handleBackToMyLocation = async () => {
+        const map = mapRef.current;
+        if (map) {
+            map.setView([myLoca.lat, myLoca.lng], 15, { animate: true, duration: 1, easeLinearity: 0.9 });
+        }
         try {
             if (myLoca.lat && myLoca.lng) {
                 const info = await fetchProvinceName(myLoca.lat, myLoca.lng);
-                handleSetProvinceName(info);
-                dispatch(backToMyLocation({ lat: myLoca.lat, lon: myLoca.lng }));
+                dispatch(
+                    backToMyLocation({
+                        lat: myLoca.lat,
+                        lon: myLoca.lng,
+                        provinceName: info.provinceName,
+                        districtName: info.districtName,
+                    }),
+                );
                 searchParams.set('vitri', `${myLoca.lat},${myLoca.lng}`);
-                navigate({ search: searchParams.toString() });
+                setSearchParams(searchParams);
             } else {
                 message.error('Không thể xác định vị trí của bạn');
             }
@@ -195,7 +201,6 @@ function Home() {
 
     //     fetchData();
     // }, []);
-
     return (
         <>
             {contextHolder}
@@ -277,7 +282,7 @@ function Home() {
                         <div className="slider-container-location">
                             <GrLocation />
                             <span>
-                                {provinceName?.provinceName}, {provinceName?.districtName}
+                                {provinceName}, {districtName}
                             </span>
                         </div>
 
@@ -331,8 +336,8 @@ function Home() {
 
                 {/* Map Container */}
                 <Map
+                    mapRef={mapRef}
                     opacity={opacity}
-                    handleSetProvinceName={handleSetProvinceName}
                     setSelectedPosition={setSelectedPosition}
                     selectedPosition={selectedPosition}
                     setIdDistrict={setIdDistrict}
