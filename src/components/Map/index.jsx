@@ -12,13 +12,22 @@ import { setListMarker } from '../../redux/listMarker/listMarkerSllice';
 import useMapParams from '../../hooks/useMapParams';
 import { FaShareAlt } from 'react-icons/fa';
 import { message, Modal, Radio } from 'antd';
-import { fetchAllProvince, fetchListInfo, fetQuyHoachByIdDistrict, searchLocation } from '../../services/api';
+import {
+    fetchAllProvince,
+    fetchAllQuyHoach,
+    fetchDistrictsByProvinces,
+    fetchListInfo,
+    fetQuyHoachByIdDistrict,
+    searchLocation,
+} from '../../services/api';
+import * as turf from '@turf/turf';
 import useGetParams from '../Hooks/useGetParams';
 import { setCurrentLocation } from '../../redux/search/searchSlice';
 import UserLocationMarker from '../UserLocationMarker';
 import { debounce } from 'lodash';
-import { getIdsProvinceByNames } from '../../function/getIdsProvinceByNames';
+import { getIdsProvinceByBoundingCenter } from '../../function/getIdsProvinceByBoundingCenter';
 import { getBoundaries } from '../../function/getBoundaries';
+import { setPolygons } from '../../redux/polygonSlice/polygonSlice';
 
 const customIcon = new L.Icon({
     iconUrl: require('../../assets/marker.png'),
@@ -31,11 +40,9 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
     const [isOverview, setIsOverview] = useState(false);
     const [listenDblClick, setListenDblClick] = useState(false);
     const [idProvince, setIdProvince] = useState();
-    const [polygons, setPolygons] = useState([]);
     const [selectedMarker, setSelectedMarker] = useState(null);
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
     const [selectedIDQuyHoach, setSelectedIDQuyHoach] = useState(null);
-    // const [locationInfo, setLocationInfo] = useState();
     const [planOption, setPlanOption] = useState([]);
     const searchParams = useGetParams();
     const locationLink = useLocation();
@@ -61,6 +68,17 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
     //         }
     //     }
     // }, [position]);
+
+    const polygonSessionStorage = useSelector((state) => state.polygonsStore.polygons);
+    // useEffect(() => {
+    //     if (!boundingSessionStorage) {
+    //         const bounding = JSON.parse(boundingSessionStorage);
+    //         const map = document.querySelector('.leaflet-container')?.leafletElement;
+    //         if (map) {
+    //             map.fitBounds(bounding);
+    //         }
+    //     }
+    // }, []);
     const closeDrawer = () => setIsDrawerVisible(false);
 
     const MapEvents = () => {
@@ -79,14 +97,6 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                 window.history.replaceState({}, '', newUrl);
 
                 if (zoom >= 8) {
-                    // const res = await getProvince(info.provinceName);
-                    // const data = await findClosestDistrict(res.TinhThanhPhoID, info.districtName);
-                    // if (data.found) {
-                    //     setIdProvince(data.districtId);
-                    //     // dispatch(setDistrictId(data.districtId));
-                    // } else {
-                    //     console.log(data.message);
-                    // }
                     try {
                         const res = await searchLocation(info?.districtName);
                         res ? setIdProvince(res.idDistrict) : setIdDistrict(null);
@@ -105,7 +115,6 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                         // Call API province
                         const info = await fetchProvinceName(lat, lng);
                         // Update position info
-                        // setLocationInfo({ districtName: info.districtName, provinceName: info.provinceName, lat, lng });
                         dispatch(
                             setCurrentLocation({
                                 lat,
@@ -127,7 +136,7 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
             ),
             zoomend: async () => {
                 const zoom = map.getZoom();
-                if (zoom < 14) {
+                if (zoom < 10) {
                     setIsOverview(true);
                 } else {
                     setIsOverview(false);
@@ -150,15 +159,53 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
 
     useEffect(() => {
         (async () => {
-            const provinces = await fetchAllProvince();
-            const provinceNames = provinces.map((province) => province.TenTinhThanhPho);
-            const ids = await getIdsProvinceByNames(provinceNames);
-            const boundaries = await getBoundaries(ids);
-            if (boundaries) {
-                setPolygons(boundaries.flat());
+            if (polygonSessionStorage && polygonSessionStorage.length > 0) {
+                console.log(polygonSessionStorage, 'polygonSessionStorage');
+            } else {
+                const allPlans = await fetchAllQuyHoach();
+                const provinces = await fetchAllProvince();
+                // const datasProvinceAndDistrict = await Promise.all(
+                //     provinces.map(async (province) => {
+                //         const district = await fetchDistrictsByProvinces(province.TinhThanhPhoID);
+                //         if (district.length > 0) {
+                //             return district.map((item) => {
+                //                 return { ...item, provinceName: province.TenTinhThanhPho };
+                //             });
+                //         }
+                //         return null;
+                //     }),
+                // );
+                const dataSearch = provinces
+                    .flat()
+                    .filter((item) => item !== null)
+                    .map((item) => {
+                        const isExist = allPlans.some((plan) => plan.idProvince === item.TinhThanhPhoID);
+                        if (isExist) {
+                            return item;
+                        }
+                        return null;
+                    })
+                    .filter((item) => item !== null);
+
+                const ids = await getIdsProvinceByBoundingCenter(dataSearch);
+                const boundaries = await getBoundaries(Array.from(new Set(ids)));
+                if (boundaries) {
+                    const mergedPolygons = boundaries.reduce((acc, polygon, i) => {
+                        if (!acc) return polygon; // Khởi tạo với polygon đầu tiên // Hợp nhất các polygon chồng lấp
+                        if (turf.booleanContains(acc, polygon)) {
+                            boundaries.splice(i, 1);
+                            return turf.union(acc, polygon);
+                        } else {
+                            return acc;
+                        }
+                    }, null);
+                    console.log(mergedPolygons, 'boundaries');
+                    sessionStorage.setItem('polygons', JSON.stringify([...boundaries, mergedPolygons]));
+                    dispatch(setPolygons([...boundaries, mergedPolygons]));
+                }
             }
         })();
-    }, []);
+    }, [polygonSessionStorage]);
 
     // useEffect(() => {
     //     setPolygons(
@@ -409,11 +456,19 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                         area={selectedMarker.area}
                     />
                 )}
-                {polygons.length > 0 &&
+                {polygonSessionStorage.length > 0 &&
                     isOverview &&
-                    polygons.map((polygon) => (
-                        <Polygon positions={polygon} key={polygon[0]} color="pink" fillColor="pink" fillOpacity={0.5} />
-                    ))}
+                    polygonSessionStorage.map((polygon, index) => {
+                        return (
+                            <Polygon
+                                key={index}
+                                positions={polygon.geometry.coordinates[0].map((coord) => [coord[1], coord[0]])}
+                                color="pink"
+                                fillOpacity={0.5}
+                                fillColor="pink"
+                            />
+                        );
+                    })}
             </MapContainer>
         </>
     );

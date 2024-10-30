@@ -32,6 +32,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { backToMyLocation } from '../../redux/search/searchSlice';
 import useGetMyLocation from '../Hooks/useGetMyLocation';
 import fetchProvinceName from '../../function/findProvince';
+import TablePlans from './TablePlans';
 
 let DefaultIcon = L.icon({
     iconUrl: icon,
@@ -370,6 +371,7 @@ function Home() {
                     idDistrict={idDistrict}
                 />
             </div>
+            {/* <TablePlans /> */}
         </>
     );
 }
