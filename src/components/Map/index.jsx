@@ -370,7 +370,6 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                 open={planOption.length > 1}
                 onOk={() => setPlanOption([])}
                 onCancel={() => setPlanOption([])}
-                width={'30%'}
                 centered
             >
                 <Radio.Group onChange={(e) => setSelectedIDQuyHoach(e.target.value)} value={selectedIDQuyHoach}>
@@ -391,16 +390,6 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                 <UserLocationMarker />
                 <MapEvents />
                 {currentLocation && <ResetCenterView lat={currentLocation.lat} lon={currentLocation.lon} />}
-                {/* {
-                    kinhtuyen && vituyen && (
-                       <>
-                            <Marker position={[kinhtuyen, vituyen]} icon={customIcon}>
-                                <Popup>Vị trí bạn tìm kiếm</Popup>
-                            </Marker>
-                            {hasRendered && <ResetCenterView lat={kinhtuyen} lon={vituyen} />}
-                       </>
-                    )
-                } */}
                 <LayersControl>
                     <LayersControl.BaseLayer checked name="Map vệ tinh">
                         <TileLayer
@@ -514,16 +503,36 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                             />
                         );
                     })} */}
-
+                {/* <Polygon
+                    positions={polygon.geometry.coordinates[0].map((coord) => [coord[1], coord[0]])}
+                    color="pink"
+                    fillOpacity={0.5}
+                    fillColor="pink"
+                /> */}
                 {isOverview &&
-                    polygonsData.map((item) => (
-                        <Polygon
-                            positions={item.map((coord) => [coord[1], coord[0]])}
-                            color="pink"
-                            fillOpacity={0.5}
-                            fillColor="pink"
-                        />
-                    ))}
+                    polygonsData.map((item) => {
+                        if (item.type === 'Polygon') {
+                            return (
+                                <Polygon
+                                    positions={item.coordinates[0].map((coord) => [coord[1], coord[0]])}
+                                    color="pink"
+                                    fillOpacity={0.5}
+                                    fillColor="pink"
+                                />
+                            );
+                        } else if (item.type === 'MultiPolygon') {
+                            return item.coordinates.map((coordinates) => (
+                                <Polygon
+                                    positions={coordinates[0].map((coord) => [coord[1], coord[0]])}
+                                    color="pink"
+                                    fillOpacity={0.5}
+                                    fillColor="pink"
+                                />
+                            ));
+                        } else {
+                            return null;
+                        }
+                    })}
             </MapContainer>
         </>
     );

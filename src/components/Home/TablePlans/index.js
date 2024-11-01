@@ -1,62 +1,55 @@
-import { Space, Tag } from 'antd';
 import TableDisplay from '../../TableDisplay';
-import { Tooltip } from 'react-leaflet';
-import { Link } from 'react-router-dom';
-import { EditOutlined } from '@ant-design/icons';
 import useTable from '../../../hooks/useTable';
+import { useEffect, useState } from 'react';
+import { fetchAllProvince, fetchAllQuyHoach, fetchDistrictsByProvinces } from '../../../services/api';
+import axios from 'axios';
 
 const TablePlans = () => {
     const { getColumnSearchProps } = useTable();
+    const [dataSource, setDataSource] = useState([]);
+    useEffect(() => {
+        (async () => {
+            try {
+                const plans = await fetchAllQuyHoach();
+                const provinces = await fetchAllProvince();
+                const districtsPromises = provinces.map((province) => fetchDistrictsByProvinces(province.id));
+                const districts = await Promise.all(districtsPromises);
+                console.log(provinces, 'provinces');
+                console.log(districts, 'districts');
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        })();
+    }, []);
     const columns = [
         {
-            title: 'Tên danh mục',
+            title: 'STT',
             dataIndex: 'name',
+        },
+        {
+            title: 'Tên quy hoạch',
+            dataIndex: 'plan',
             key: 'search',
             render: (text) => <h4>{text}</h4>,
-            ...getColumnSearchProps('name'),
+            ...getColumnSearchProps('plan'),
             width: '20%',
         },
         {
-            title: 'Thuộc tính',
-            dataIndex: 'attributeNames',
-            key: 'attributeNames',
-            width: '70%',
-            render: (_, record) => (
-                <>
-                    {record.attributeIds?.map((att) => {
-                        return (
-                            <Tag
-                                color={att.isVariant ? 'geekblue' : att.isRequired ? 'red' : ''}
-                                className="my-1"
-                                key={att._id}
-                            >
-                                {att.name.toUpperCase()}
-                            </Tag>
-                        );
-                    })}
-                </>
-            ),
+            title: 'Tỉnh/Thành phố',
+            dataIndex: 'province',
+            key: 'search',
         },
         {
-            title: 'Thao tác',
-            key: 'action',
-            render: (_, record) => (
-                <Space size={'middle'}>
-                    <Tooltip title="Cập nhật danh mục">
-                        <Link to={``} className="text-blue-500">
-                            <EditOutlined className="rounded-full bg-blue-100 p-2" style={{ fontSize: '1rem' }} />
-                        </Link>
-                    </Tooltip>
-                </Space>
-            ),
+            title: 'Quân/Huyện',
+            dataIndex: 'district',
+            key: 'search',
+        },
+        {
+            title: 'Ngày tạo',
+            dataIndex: 'date',
         },
     ];
-    return (
-        <>
-            <h1>Kho dữ liệu</h1>
-            <TableDisplay dataSource={[]} columns={columns} totalDocs={0} />
-        </>
-    );
+    return <TableDisplay dataSource={dataSource} columns={columns} totalDocs={0} />;
 };
 
 export default TablePlans;

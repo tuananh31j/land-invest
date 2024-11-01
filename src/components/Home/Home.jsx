@@ -17,7 +17,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-import { message, notification } from 'antd';
+import { Button, Drawer, message, notification, Space } from 'antd';
 import ModalDownMenu from './ModalDown/ModalDownMenu';
 import ModalPriceFilter from './ModalDown/ModalPriceFilter';
 import { DollarIcon, FileUploadIcon } from '../Icons';
@@ -33,6 +33,7 @@ import { backToMyLocation } from '../../redux/search/searchSlice';
 import useGetMyLocation from '../Hooks/useGetMyLocation';
 import fetchProvinceName from '../../function/findProvince';
 import TablePlans from './TablePlans';
+import useTableListOpen from '../../hooks/useTableListOpen';
 
 let DefaultIcon = L.icon({
     iconUrl: icon,
@@ -51,12 +52,11 @@ function Home() {
     const [isShowModalQuyhoach, setIsShowModalQuyhoach] = useState(false);
     const [idDistrict, setIdDistrict] = useState(null);
     const dispatch = useDispatch();
-    const navigate = useNavigate();
+    const { isOpen, handleOpenTableList, handleCloseTableList } = useTableListOpen();
     const myLoca = useGetMyLocation();
     const [messageApi, contextHolder] = message.useMessage();
     const { districtName, provinceName } = useSelector((state) => state.searchQuery.searchResult);
     const mapRef = useRef();
-
     const location = useLocation();
 
     // useEffect(() => {
@@ -205,7 +205,7 @@ function Home() {
     return (
         <>
             {contextHolder}
-            <div className="home-container">
+            <div className="home-container" style={{ overflowY: 'auto' }}>
                 <div
                     className="slider-container"
                     style={{
@@ -306,33 +306,6 @@ function Home() {
                             </div>
                         </div>
                     </div>
-                    <div className="container-header-option">
-                        {/* <div
-                            className={`container-header-option-item ${activeItem === 0 ? 'active_item' : ''}`}
-                            onClick={() => handleClick(0)}
-                        >
-                            Quy hoạch 2030
-                        </div>
-                        <div
-                            className={`container-header-option-item ${activeItem === 1 ? 'active_item' : ''}`}
-                            onClick={() => handleClick(1)}
-                        >
-                            Quy hoạch 2024
-                        </div>
-                        <div
-                            className={`container-header-option-item ${activeItem === 2 ? 'active_item' : ''}`}
-                            onClick={() => handleClick(2)}
-                        >
-                            Quy hoạch khác
-                        </div> */}
-                        {/* <div
-                            ref={buttonRef}
-                            className={`container-header-option-item ${activeItem === 3 ? 'active_item' : ''}`}
-                            onClick={() => handleClick(3)}
-                        >
-                            Danh sách quy hoạch
-                        </div> */}
-                    </div>
                 </div>
 
                 {/* Map Container */}
@@ -371,7 +344,20 @@ function Home() {
                     idDistrict={idDistrict}
                 />
             </div>
-            {/* <TablePlans /> */}
+            <Drawer
+                title="Kho dữ liệu"
+                width={'100vw'}
+                height={'100vh'}
+                onClose={handleCloseTableList}
+                open={isOpen}
+                styles={{
+                    body: {
+                        paddingBottom: 80,
+                    },
+                }}
+            >
+                {!!isOpen && <TablePlans />}
+            </Drawer>
         </>
     );
 }

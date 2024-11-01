@@ -1,11 +1,12 @@
 import '../ModalDown/ModalDownMenu.scss';
 import { memo, useEffect, useRef, useState } from 'react';
-import { Modal } from 'antd';
+import { Button, Modal } from 'antd';
 import Draggable from 'react-draggable';
 
 import { fetQuyHoachByIdDistrict } from '../../../services/api';
 import PlanMapSection from '../../PlanMapSection';
 import { useLocation, useNavigate } from 'react-router-dom';
+import useTableListOpen from '../../../hooks/useTableListOpen';
 
 const ModalQuyHoach = (props) => {
     const { isShowModalQuyHoach, handleCloseQuyHoach, idDistrict } = props;

@@ -14,7 +14,7 @@ const TableDisplay = ({
     };
 
     return (
-        <>
+        <div className="h-[100vh] w-[100vw]">
             <Table
                 rowKey="id"
                 bordered={true}
@@ -27,7 +27,7 @@ const TableDisplay = ({
             <Space className="m-5 flex w-full justify-end">
                 <Pagination onChange={onSelectPaginateChange} pageSize={10} total={totalDocs} current={currentPage} />
             </Space>
-        </>
+        </div>
     );
 };
 export default TableDisplay;

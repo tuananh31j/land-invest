@@ -1,12 +1,18 @@
-import { Modal } from 'antd';
+import { Button, Modal } from 'antd';
 import { memo, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
 import './ModalDownMenu.scss';
 import TreeDirectory from '../../TreeDirectory';
+import useTableListOpen from '../../../hooks/useTableListOpen';
 
 const ModalDownMenu = ({ handleClose, show }) => {
     const [disabled, setDisabled] = useState(true);
-    const [openAdvancedSearch, setOpenAdvancedSearch] = useState(false);
+    const { handleOpenTableList } = useTableListOpen();
+    const handleOpenTable = () => {
+        handleOpenTableList();
+        handleClose();
+    };
+
     const [bounds, setBounds] = useState({
         left: 0,
         top: 0,
@@ -66,7 +72,7 @@ const ModalDownMenu = ({ handleClose, show }) => {
                     onFocus={() => {}}
                     onBlur={() => {}}
                 >
-                    Danh Sách Quy Hoạch
+                    Danh Sách Quy Hoạch <Button onClick={handleOpenTable}>Mở rộng</Button>
                 </div>
             }
         >
