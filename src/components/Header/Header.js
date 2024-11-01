@@ -120,7 +120,6 @@ const Header = () => {
             );
             const filteredData = data.filter((item) => item.geojson?.type === 'Polygon');
 
-            setSearchResult(filteredData);
             handleSearchDispatch(filteredData[0]);
             setSearchQuery('');
             setIsLoading(false);

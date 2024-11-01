@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const polygonSessionStorage = sessionStorage.getItem('polygons');
 
 const init = {
-    boundingboxs: polygonSessionStorage ? JSON.parse(polygonSessionStorage) : [],
+    boundingboxs: [],
 };
 
 const initialState = {

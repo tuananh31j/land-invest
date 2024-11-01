@@ -28,6 +28,7 @@ import { debounce } from 'lodash';
 import { getIdsProvinceByBoundingCenter } from '../../function/getIdsProvinceByBoundingCenter';
 import { getBoundaries } from '../../function/getBoundaries';
 import { setPolygons } from '../../redux/polygonSlice/polygonSlice';
+import { polygonsData } from '../../data/polygons';
 
 const customIcon = new L.Icon({
     iconUrl: require('../../assets/marker.png'),
@@ -158,54 +159,98 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
     }, [locationLink.search]);
 
     useEffect(() => {
-        (async () => {
-            if (polygonSessionStorage && polygonSessionStorage.length > 0) {
-                console.log(polygonSessionStorage, 'polygonSessionStorage');
-            } else {
-                const allPlans = await fetchAllQuyHoach();
-                const provinces = await fetchAllProvince();
-                // const datasProvinceAndDistrict = await Promise.all(
-                //     provinces.map(async (province) => {
-                //         const district = await fetchDistrictsByProvinces(province.TinhThanhPhoID);
-                //         if (district.length > 0) {
-                //             return district.map((item) => {
-                //                 return { ...item, provinceName: province.TenTinhThanhPho };
-                //             });
-                //         }
-                //         return null;
-                //     }),
-                // );
-                const dataSearch = provinces
-                    .flat()
-                    .filter((item) => item !== null)
-                    .map((item) => {
-                        const isExist = allPlans.some((plan) => plan.idProvince === item.TinhThanhPhoID);
-                        if (isExist) {
-                            return item;
-                        }
-                        return null;
-                    })
-                    .filter((item) => item !== null);
-
-                const ids = await getIdsProvinceByBoundingCenter(dataSearch);
-                const boundaries = await getBoundaries(Array.from(new Set(ids)));
-                if (boundaries) {
-                    const mergedPolygons = boundaries.reduce((acc, polygon, i) => {
-                        if (!acc) return polygon; // Khởi tạo với polygon đầu tiên // Hợp nhất các polygon chồng lấp
-                        if (turf.booleanContains(acc, polygon)) {
-                            boundaries.splice(i, 1);
-                            return turf.union(acc, polygon);
-                        } else {
-                            return acc;
-                        }
-                    }, null);
-                    console.log(mergedPolygons, 'boundaries');
-                    sessionStorage.setItem('polygons', JSON.stringify([...boundaries, mergedPolygons]));
-                    dispatch(setPolygons([...boundaries, mergedPolygons]));
-                }
-            }
-        })();
-    }, [polygonSessionStorage]);
+        // (async () => {
+        //     try {
+        //         // if (false) {
+        //         //     console.log(polygonSessionStorage, 'polygonSessionStorage');
+        //         // } else {
+        //         //     const allPlans = await fetchAllQuyHoach();
+        //         //     const provinces = await fetchAllProvince();
+        //         //     const datasProvinceAndDistrict = await Promise.all(
+        //         //         provinces.map(async (province) => {
+        //         //             const district = await fetchDistrictsByProvinces(province.TinhThanhPhoID);
+        //         //             if (district.length > 0) {
+        //         //                 return district.map((item) => {
+        //         //                     return { ...item, provinceName: province.TenTinhThanhPho };
+        //         //                 });
+        //         //             }
+        //         //             return null;
+        //         //         }),
+        //         //     );
+        //         //     const test = datasProvinceAndDistrict
+        //         //         .flat()
+        //         //         .filter((item) => item !== null)
+        //         //         .map((item) => {
+        //         //             const isExist = allPlans.some(
+        //         //                 (plan) =>
+        //         //                     plan.idProvince === item.TinhThanhPhoID && plan.idDistrict === item.districtId,
+        //         //             );
+        //         //             if (isExist) {
+        //         //                 return item;
+        //         //             }
+        //         //             return null;
+        //         //         })
+        //         //         .filter((item) => item !== null);
+        //         //     console.log(test, 'test');
+        //         //     console.log(datasProvinceAndDistrict, 'datasProvinceAndDistrict');
+        //         //     const tes = [];
+        //         //     const dataSearch = provinces
+        //         //         .flat()
+        //         //         .filter((item) => item !== null)
+        //         //         .map((item) => {
+        //         //             const isExist = allPlans.some((plan) => plan.idProvince === item.TinhThanhPhoID);
+        //         //             if (isExist) {
+        //         //                 return item;
+        //         //             }
+        //         //             tes.push(item);
+        //         //             return null;
+        //         //         })
+        //         //         .filter((item) => item !== null);
+        //         //     console.log(tes, 'tes');
+        //         //     const ids = await getIdsProvinceByBoundingCenter(dataSearch);
+        //         //     console.log(dataSearch, 'dataSearch');
+        //         //     const boundaries = await getBoundaries(Array.from(new Set(ids)));
+        //         //     const stored = [];
+        //         //     if (boundaries) {
+        //         //         // for (let i = 0; i < boundaries.length; i++) {
+        //         //         //     let memory = [];
+        //         //         //     let hasMerged = true;
+        //         //         //     const handleMergePolygon = (boundaries) => {
+        //         //         //         const mergedPolygons = boundaries.reduce((acc, polygon, i) => {
+        //         //         //             if (!acc) return polygon;
+        //         //         //             if (turf.booleanContains(acc, polygon)) {
+        //         //         //                 boundaries.splice(i, 1);
+        //         //         //                 hasMerged = true;
+        //         //         //                 return turf.union(acc, polygon);
+        //         //         //             } else {
+        //         //         //                 memory.push(polygon);
+        //         //         //                 return acc;
+        //         //         //             }
+        //         //         //         }, null);
+        //         //         //         return mergedPolygons;
+        //         //         //     };
+        //         //         //     if (hasMerged) {
+        //         //         //         hasMerged = false;
+        //         //         //         const item = handleMergePolygon(boundaries);
+        //         //         //         stored.push(item);
+        //         //         //     }
+        //         //         //     if (!hasMerged) {
+        //         //         //         stored.push(...memory);
+        //         //         //         return stored;
+        //         //         //     }
+        //         //         // }
+        //         //         console.log(ids, 'ids');
+        //         //         sessionStorage.setItem('polygons', JSON.stringify(boundaries));
+        //         //         console.log(boundaries, 'boundaries');
+        //         //         dispatch(setPolygons(boundaries));
+        //         //     }
+        //         // }
+        //     } catch (error) {
+        //         console.log(error, '11111111111111111');
+        //     }
+        // })();
+        // setPolygons(polygonsData)
+    }, []);
 
     // useEffect(() => {
     //     setPolygons(
@@ -215,7 +260,7 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
     //     );
     // }, [coordinates]);
 
-    // Get plan id by district id
+    // // Get plan id by district id
 
     // useEffect(() => {
     //     (async () => {
@@ -456,7 +501,7 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                         area={selectedMarker.area}
                     />
                 )}
-                {polygonSessionStorage.length > 0 &&
+                {/* {polygonSessionStorage.length > 0 &&
                     isOverview &&
                     polygonSessionStorage.map((polygon, index) => {
                         return (
@@ -468,7 +513,17 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                                 fillColor="pink"
                             />
                         );
-                    })}
+                    })} */}
+
+                {isOverview &&
+                    polygonsData.map((item) => (
+                        <Polygon
+                            positions={item.map((coord) => [coord[1], coord[0]])}
+                            color="pink"
+                            fillOpacity={0.5}
+                            fillColor="pink"
+                        />
+                    ))}
             </MapContainer>
         </>
     );
