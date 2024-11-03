@@ -9,12 +9,13 @@ import fetchProvinceName from '../../function/findProvince';
 const UserLocationMarker = () => {
     const { lat, lng } = useGetMyLocation();
     const searchParams = useGetParams();
-    const currentPositon = searchParams.get('vitri') ? searchParams.get('vitri').split(',') : [];
+    const currentPosition = searchParams.get('vitri') ? searchParams.get('vitri').split(',') : [];
+    const quyhoachID = searchParams.get('quyhoach') ? searchParams.get('quyhoach') : null;
     const dispatch = useDispatch();
     useEffect(() => {
         (async () => {
-            const hasPositon = currentPositon.length === 2;
-            if (lat && lng && !hasPositon) {
+            const hasPosition = currentPosition.length === 2;
+            if (lat && lng && !hasPosition && !quyhoachID) {
                 const info = await fetchProvinceName(lat, lng);
                 dispatch(
                     backToMyLocation({

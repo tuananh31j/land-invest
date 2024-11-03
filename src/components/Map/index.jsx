@@ -414,7 +414,7 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                             url={`https://apilandinvest.gachmen.org/get_api_quyhoach/${item}/{z}/{x}/{y}`}
                             pane="overlayPane"
                             minZoom={1}
-                            maxZoom={18}
+                            maxZoom={22}
                             opacity={opacity}
                         />
                     ))}
@@ -423,7 +423,7 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                             url={`https://apilandinvest.gachmen.org/get_api_quyhoach/${selectedIDQuyHoach}/{z}/{x}/{y}`}
                             pane="overlayPane"
                             minZoom={12}
-                            maxZoom={18}
+                            maxZoom={22}
                             opacity={opacity}
                         />
                     )}
