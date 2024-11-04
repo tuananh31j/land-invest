@@ -8,8 +8,11 @@ const filterSliceTable = createSlice({
         setQuery: (state, action) => {
             state.query = action.payload;
         },
+        resetQuery: (state, action) => {
+            state.query = { page: 1 };
+        },
     },
 });
 
-export const { setQuery } = filterSliceTable.actions;
+export const { setQuery, resetQuery } = filterSliceTable.actions;
 export default filterSliceTable;

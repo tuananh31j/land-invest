@@ -12,23 +12,15 @@ import { setListMarker } from '../../redux/listMarker/listMarkerSllice';
 import useMapParams from '../../hooks/useMapParams';
 import { FaShareAlt } from 'react-icons/fa';
 import { message, Modal, Radio } from 'antd';
-import {
-    fetchAllProvince,
-    fetchAllQuyHoach,
-    fetchDistrictsByProvinces,
-    fetchListInfo,
-    fetQuyHoachByIdDistrict,
-    searchLocation,
-} from '../../services/api';
+import { fetchAllQuyHoach, fetchListInfo, fetQuyHoachByIdDistrict, searchLocation } from '../../services/api';
 import * as turf from '@turf/turf';
 import useGetParams from '../Hooks/useGetParams';
 import { setCurrentLocation } from '../../redux/search/searchSlice';
 import UserLocationMarker from '../UserLocationMarker';
 import { debounce } from 'lodash';
-import { getIdsProvinceByBoundingCenter } from '../../function/getIdsProvinceByBoundingCenter';
-import { getBoundaries } from '../../function/getBoundaries';
-import { setPolygons } from '../../redux/polygonSlice/polygonSlice';
 import { polygonsData } from '../../data/polygons';
+import getCenterOfBoundingBoxes from '../../function/getCenterOfBoundingBoxes';
+import { setQuyHoachIds } from '../../redux/plansSelected/plansSelected';
 
 const customIcon = new L.Icon({
     iconUrl: require('../../assets/marker.png'),
@@ -51,9 +43,8 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
     const listMarker = useSelector(selectFilteredMarkers);
     const currentLocation = useSelector((state) => state.searchQuery.searchResult);
     const [messageApi, contextHolder] = message.useMessage();
-    const [quyhoachIds, setQuyhoachIds] = useState([]);
+    const quyHoachIds = useSelector((state) => state.plansSelected.quyhoach);
     const { initialCenter, initialZoom } = useMapParams();
-    // const [position, setPosition] = useState([]);
 
     // useEffect(() => {
     //     const searchParams = new URLSearchParams(locationLink.search);
@@ -70,7 +61,6 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
     //     }
     // }, [position]);
 
-    const polygonSessionStorage = useSelector((state) => state.polygonsStore.polygons);
     // useEffect(() => {
     //     if (!boundingSessionStorage) {
     //         const bounding = JSON.parse(boundingSessionStorage);
@@ -148,15 +138,15 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
 
         return null;
     };
-    useEffect(() => {
-        const newQuyhoachIds =
-            new URLSearchParams(locationLink.search)
-                .get('quyhoach')
-                ?.split(',')
-                .map((id) => parseInt(id, 10)) || [];
+    // useEffect(() => {
+    //     const newQuyhoachIds =
+    //         new URLSearchParams(locationLink.search)
+    //             .get('quyhoach')
+    //             ?.split(',')
+    //             .map((id) => parseInt(id, 10)) || [];
 
-        setQuyhoachIds(newQuyhoachIds);
-    }, [locationLink.search]);
+    //     setQuyhoachIds(newQuyhoachIds);
+    // }, [locationLink.search]);
 
     useEffect(() => {
         // (async () => {
@@ -296,12 +286,28 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
     useEffect(() => {
         (async () => {
             try {
-                // Call API province
-                const vitri = searchParams.get('vitri').split(',');
-                console.log(vitri, 'vitri');
-                if (vitri && vitri.length > 0) {
+                const vitri = searchParams.get('vitri') ? searchParams.get('vitri').split(',') : null;
+                const quyhoach = searchParams.get('quyhoach') ? searchParams.get('quyhoach').split(',') : null;
+                if (!!quyhoach) {
+                    const allPlans = await fetchAllQuyHoach();
+                    const boudingBoxes = allPlans
+                        .filter((item) => quyhoach.includes(item.id.toString()))
+                        .map((item) => item.boundingbox.split(',').map(Number));
+                    const center = getCenterOfBoundingBoxes(boudingBoxes);
+                    dispatch(setQuyHoachIds(quyhoach));
+                    const info = await fetchProvinceName(center[1], center[0]);
+                    dispatch(
+                        setCurrentLocation({
+                            lat: center[1],
+                            lon: center[0],
+                            provinceName: info.provinceName,
+                            districtName: info.districtName,
+                        }),
+                    );
+                } else if (vitri && vitri.length > 0) {
                     const lat = parseFloat(vitri[0]);
                     const lng = parseFloat(vitri[1]);
+                    dispatch(setQuyHoachIds([]));
                     const info = await fetchProvinceName(lat, lng);
                     dispatch(
                         setCurrentLocation({
@@ -311,15 +317,12 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                             districtName: info.districtName,
                         }),
                     );
-                    // Update position info
-                    // setLocationInfo({ districtName: info.districtName, provinceName: info.provinceName, lat, lng });
-
-                    // Call API district
                     const res = await searchLocation(info?.districtName);
                     res ? setIdDistrict(res.idDistrict) : setIdDistrict(null);
                     setListenDblClick(Math.random());
                 }
             } catch (error) {
+                console.log('error', error);
                 setIdDistrict(null);
             }
         })();
@@ -339,7 +342,7 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
 
         fetchData();
     }, [idProvince]);
-
+    console.log(quyHoachIds, 'quyHoachIds');
     const handleShareClick = (lat, lng) => {
         const urlParams = new URLSearchParams(locationLink.search);
 
@@ -393,10 +396,9 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                 <LayersControl>
                     <LayersControl.BaseLayer checked name="Map vệ tinh">
                         <TileLayer
-                            url="http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}"
-                            subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
-                            maxZoom={30}
-                            attribution="&copy; <a href='https://www.google.com/maps'>Google Maps</a> contributors"
+                            url={`https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoidHVhbmFuaDMxaiIsImEiOiJjbTMzMmo2d3AxZ2g0Mmlwejl1YzM0czRoIn0.vCpAJx2b_FVhC3LDfmdLTA`}
+                            attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> contributors'
+                            maxZoom={22}
                         />
                     </LayersControl.BaseLayer>
                     <LayersControl.BaseLayer name="Map mặc định">
@@ -408,16 +410,17 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                     </LayersControl.BaseLayer>
                 </LayersControl>
                 <Pane name="PaneThai" style={{ zIndex: 650 }}>
-                    {quyhoachIds.map((item, index) => (
-                        <TileLayer
-                            key={index}
-                            url={`https://apilandinvest.gachmen.org/get_api_quyhoach/${item}/{z}/{x}/{y}`}
-                            pane="overlayPane"
-                            minZoom={1}
-                            maxZoom={22}
-                            opacity={opacity}
-                        />
-                    ))}
+                    {quyHoachIds &&
+                        quyHoachIds.map((item, index) => (
+                            <TileLayer
+                                key={index}
+                                url={`https://apilandinvest.gachmen.org/get_api_quyhoach/${item}/{z}/{x}/{y}`}
+                                pane="overlayPane"
+                                minZoom={1}
+                                maxZoom={22}
+                                opacity={opacity}
+                            />
+                        ))}
                     {selectedIDQuyHoach && (
                         <TileLayer
                             url={`https://apilandinvest.gachmen.org/get_api_quyhoach/${selectedIDQuyHoach}/{z}/{x}/{y}`}

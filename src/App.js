@@ -18,12 +18,10 @@ import TableGroup from './pages/Admin/ListGroup';
 import TablePost from './pages/Admin/ListPost';
 import PostPage from './components/News/PostPage';
 import TableUser from './pages/Admin/ListUser';
-import UserProfile from './pages/ProfileUser/UserProfile';
 import Profile from './pages/ProfileUser/Profile';
 import { useSelector } from 'react-redux';
 import Notification from './components/Notification/Notification';
 import AuctionInfor from './components/Auction/AuctionInfor';
-import PlanMap from './pages/PlanMap';
 import LatestNews from './components/News/categorizeNews/LatestNews';
 import HotNews from './components/News/categorizeNews/HotNews';
 
@@ -57,10 +55,6 @@ function App() {
                     path: '/:name',
                     element: <Home />,
                 },
-                // {
-                //     path: '/PlanMap',
-                //     element: <PlanMap />,
-                // },
                 {
                     path: '/notifications',
                     element: <Notification />,
@@ -99,11 +93,6 @@ function App() {
                 },
             ],
         },
-
-        // {
-        //   path: "/history",
-        //   element: <HistoryOrder/>,
-        // },
         {
             path: '/login',
             element: <Login />,

@@ -1,4 +1,7 @@
 /* giao diện Mobile */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 @media (max-width: 46.1875em) {
     .app-content {
         overflow: auto;

@@ -1,10 +1,12 @@
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import useFilter from './useFilter';
 import _ from 'lodash';
 import { Button, Input, Space } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
+import slugify from 'slugify';
 
+const removeVietnameseTones = (str) => slugify(str, { replacement: '', lower: true, locale: 'vi' });
 const convertObject = (inputObj) => {
     return _.reduce(
         inputObj,
@@ -50,7 +52,10 @@ const useTable = () => {
     };
 
     const getFilteredValue = (key) => {
+        console.log(key, 'key');
+        console.log(query, 'query', 'key');
         return query[key] ? query[key].split(',') : undefined;
+        // return [];
     };
 
     const handleResetSearch = (clearFilters) => {
@@ -58,11 +63,8 @@ const useTable = () => {
         setSearchText('');
         updateQueryParam({ ...query, page: '1', search: '', rawsearch: '' });
     };
-    const onSelectPaginateChange = (page) => {
-        updateQueryParam({ ...query, page: String(page) });
-    };
 
-    const onFilter = (filters, sorter) => {
+    const onFilter = (page, filters, sorter) => {
         const filterParams = convertObject(filters);
         const sortColumKey = Array.isArray(sorter) ? sorter[0]?.columnKey : sorter?.columnKey;
         const sortOrder = Array.isArray(sorter) ? sorter[0]?.order : sorter?.order;
@@ -74,7 +76,8 @@ const useTable = () => {
                 sortParams = `-${sortColumKey}`;
             }
         }
-        updateQueryParam({ ...query, ...filterParams, sort: sortParams, page: String(1) });
+        console.log({ ...query, ...filterParams, sort: sortParams, page: String(page) }, 'filterParams');
+        updateQueryParam({ ...query, ...filterParams, sort: sortParams, page: String(page) });
     };
 
     const getColumnSearchProps = (dataIndex) => ({
@@ -98,13 +101,13 @@ const useTable = () => {
                     >
                         Tìm kiếm
                     </Button>
-                    <Button
+                    {/* <Button
                         onClick={() => clearFilters && handleResetSearch(clearFilters)}
                         size="small"
                         style={{ width: 90 }}
                     >
                         Đặt lại
-                    </Button>
+                    </Button> */}
                     <Button
                         type="link"
                         size="small"
@@ -128,6 +131,12 @@ const useTable = () => {
                 setTimeout(() => searchInput.current?.select(), 100);
             }
         },
+        onFilter: (value, record) => {
+            const searchValue = removeVietnameseTones(value);
+            const recordValue = removeVietnameseTones(record[dataIndex].toString());
+            return recordValue.includes(searchValue);
+        },
+
         render: (text) =>
             searchedColumn === dataIndex ? (
                 <Highlighter
@@ -148,7 +157,6 @@ const useTable = () => {
         onFilter,
         resetFilter,
         getColumnSearchProps,
-        onSelectPaginateChange,
     };
 };
 

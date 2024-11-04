@@ -1,12 +1,11 @@
 import '../ModalDown/ModalDownMenu.scss';
 import { memo, useEffect, useRef, useState } from 'react';
-import { Button, Modal } from 'antd';
+import { Modal } from 'antd';
 import Draggable from 'react-draggable';
 
 import { fetQuyHoachByIdDistrict } from '../../../services/api';
 import PlanMapSection from '../../PlanMapSection';
 import { useLocation, useNavigate } from 'react-router-dom';
-import useTableListOpen from '../../../hooks/useTableListOpen';
 
 const ModalQuyHoach = (props) => {
     const { isShowModalQuyHoach, handleCloseQuyHoach, idDistrict } = props;
@@ -56,25 +55,25 @@ const ModalQuyHoach = (props) => {
         fetchData();
     }, [idDistrict]);
 
-    useEffect(() => {
-        const searchParams = new URLSearchParams(location.search);
-        const quyhoachParam = searchParams.get('quyhoach');
-        if (quyhoachParam) {
-            setSelectedIDQuyHoach(quyhoachParam.split(',').map(Number));
-        }
-    }, [location.search]);
+    // useEffect(() => {
+    //     const searchParams = new URLSearchParams(location.search);
+    //     const quyhoachParam = searchParams.get('quyhoach');
+    //     if (quyhoachParam) {
+    //         setSelectedIDQuyHoach(quyhoachParam.split(',').map(Number));
+    //     }
+    // }, [location.search]);
 
-    useEffect(() => {
-        const searchParams = new URLSearchParams(location.search);
-        if (selectedIDQuyHoach.length > 0) {
-            searchParams.set('quyhoach', selectedIDQuyHoach.join(','));
-        } else {
-            searchParams.delete('quyhoach'); // Xóa tham số nếu không có giá trị hợp lệ
-        }
+    // useEffect(() => {
+    //     const searchParams = new URLSearchParams(location.search);
+    //     if (selectedIDQuyHoach.length > 0) {
+    //         searchParams.set('quyhoach', selectedIDQuyHoach.join(','));
+    //     } else {
+    //         searchParams.delete('quyhoach'); // Xóa tham số nếu không có giá trị hợp lệ
+    //     }
 
-        // Giữ nguyên các tham số khác
-        navigate({ search: searchParams.toString() });
-    }, [selectedIDQuyHoach]);
+    //     // Giữ nguyên các tham số khác
+    //     navigate({ search: searchParams.toString() });
+    // }, [selectedIDQuyHoach]);
 
     const handleChangeIDQuyHoach = (id) => {
         if (selectedIDQuyHoach?.includes(id)) {

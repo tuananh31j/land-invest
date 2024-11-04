@@ -10,6 +10,7 @@ import storage from 'redux-persist/lib/storage';
 import listGroupReducer from './getId/getIDSlice';
 import setPolygonsReducer from './polygonSlice/polygonSlice';
 import filterSliceTable from './filterSliceTable/filterSliceTable';
+import plansSelected from './plansSelected/plansSelected';
 import { planTableExtend } from './planTableExtend/planTableExtend';
 // import baseApi from './apis/baseApi';
 
@@ -31,6 +32,7 @@ const rootReducer = combineReducers({
     polygonsStore: setPolygonsReducer,
     filterSliceTable: filterSliceTable.reducer,
     planTableExtend: planTableExtend.reducer,
+    plansSelected: plansSelected.reducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

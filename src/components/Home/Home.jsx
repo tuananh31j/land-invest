@@ -34,6 +34,8 @@ import useGetMyLocation from '../Hooks/useGetMyLocation';
 import fetchProvinceName from '../../function/findProvince';
 import TablePlans from './TablePlans';
 import useTableListOpen from '../../hooks/useTableListOpen';
+import useFilter from '../../hooks/useFilter';
+import useTable from '../../hooks/useTable';
 
 let DefaultIcon = L.icon({
     iconUrl: icon,
@@ -52,10 +54,11 @@ function Home() {
     const [isShowModalQuyhoach, setIsShowModalQuyhoach] = useState(false);
     const [idDistrict, setIdDistrict] = useState(null);
     const dispatch = useDispatch();
-    const { isOpen, handleOpenTableList, handleCloseTableList } = useTableListOpen();
+    const { isOpen, handleCloseTableList } = useTableListOpen();
     const myLoca = useGetMyLocation();
     const [messageApi, contextHolder] = message.useMessage();
     const { districtName, provinceName } = useSelector((state) => state.searchQuery.searchResult);
+    const { resetFilter } = useTable();
     const mapRef = useRef();
     const location = useLocation();
 
@@ -202,6 +205,7 @@ function Home() {
 
     //     fetchData();
     // }, []);
+
     return (
         <>
             {contextHolder}
@@ -309,14 +313,16 @@ function Home() {
                 </div>
 
                 {/* Map Container */}
-                <Map
-                    mapRef={mapRef}
-                    opacity={opacity}
-                    setSelectedPosition={setSelectedPosition}
-                    selectedPosition={selectedPosition}
-                    setIdDistrict={setIdDistrict}
-                    idDistrict={idDistrict}
-                />
+                {!isOpen && (
+                    <Map
+                        mapRef={mapRef}
+                        opacity={opacity}
+                        setSelectedPosition={setSelectedPosition}
+                        selectedPosition={selectedPosition}
+                        setIdDistrict={setIdDistrict}
+                        idDistrict={idDistrict}
+                    />
+                )}
 
                 <ModalDownMenu show={isModalVisible} handleClose={handleModalClose} />
                 <ModalPriceFilter showPrice={isShowModalPrice} handleClosePrice={handleClosePrice} />
@@ -345,7 +351,14 @@ function Home() {
                 />
             </div>
             <Drawer
-                title="Kho dữ liệu"
+                title={
+                    <div className="flex justify-between items-baseline">
+                        <p>Kho dữ liệu</p>
+                        {/* <Button type="dashed" className="text-sm" onClick={resetFilter}>
+                            Đặt lại bộ lọc
+                        </Button> */}
+                    </div>
+                }
                 width={'100vw'}
                 height={'100vh'}
                 onClose={handleCloseTableList}

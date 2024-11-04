@@ -1,21 +1,24 @@
 import React, { useState, useEffect, memo, useCallback, useMemo } from 'react';
 import { Tree, Spin } from 'antd';
-import { fetchAllProvince, fetchDistrictsByProvinces } from '../../services/api';
+import { fetchAllProvince, fetchAllQuyHoach, fetchDistrictsByProvinces } from '../../services/api';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDebounce } from 'use-debounce';
 import removeAccents from 'remove-accents';
 import { LoadingOutlined } from '@ant-design/icons';
 import Search from 'antd/es/input/Search';
-import { getBoundingBoxCenterFromString } from '../../function/getCenterByBoundingbox';
 import axios from 'axios';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setCurrentLocation } from '../../redux/search/searchSlice';
 import fetchProvinceName from '../../function/findProvince';
+import getCenterOfBoundingBoxes from '../../function/getCenterOfBoundingBoxes';
+import { setQuyHoachIds } from '../../redux/plansSelected/plansSelected';
+import useTable from '../../hooks/useTable';
 
 const TreeDirectory = () => {
+    const quyHoachIdsStored = useSelector((state) => state.plansSelected.quyhoach);
     const [treeData, setTreeData] = useState([]);
     const [originalTreeData, setOriginalTreeData] = useState([]);
-    const [checkedKeys, setCheckedKeys] = useState([]);
+    const [checkedKeys, setCheckedKeys] = useState(quyHoachIdsStored.map((id) => `plan-${id}`));
     const [expandedKeys, setExpandedKeys] = useState([]);
     const [autoExpandParent, setAutoExpandParent] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -26,14 +29,19 @@ const TreeDirectory = () => {
     const location = useLocation();
     const searchParams = new URLSearchParams(location.search);
     const dispatch = useDispatch();
+    const { query } = useTable();
+
     useEffect(() => {
         fetchProvinces();
         const quyhoachParams = searchParams.get('quyhoach');
         if (quyhoachParams) {
             const quyhoachKeys = quyhoachParams.split(',').map((id) => `plan-${id}`);
             setCheckedKeys(quyhoachKeys);
+        } else {
+            setCheckedKeys([]);
+            setQuyHoachIds([]);
         }
-    }, []);
+    }, [query]);
 
     useEffect(() => {
         if (debouncedSearchTerm) {
@@ -118,6 +126,7 @@ const TreeDirectory = () => {
         async (checkedKeysValue) => {
             if (!Array.isArray(checkedKeysValue)) return;
             setCheckedKeys(checkedKeysValue);
+            console.log(checkedKeysValue, 'checkedKeysValue');
             const quyhoachIds = checkedKeysValue
                 .filter((key) => key?.startsWith('plan-'))
                 .map((key) => key?.split('-')[1])
@@ -126,24 +135,27 @@ const TreeDirectory = () => {
                 .filter((key) => key?.startsWith('district-'))
                 .map((key) => key?.split('-')[1])
                 .filter((id) => id != null);
+            const mergeQuyHoachIds = [...quyhoachIds, ...new Set(quyHoachIdsStored)];
 
-            if (districtIds.length > 0 && quyhoachIds.length > 0) {
-                const id = districtIds[districtIds.length - 1];
-
-                const { data } = await axios.get(`https://apilandinvest.gachmen.org/quyhoach1quan/${id}`);
-                const { centerLatitude, centerLongitude } = getBoundingBoxCenterFromString(data[0]?.boundingbox);
-                const info = await fetchProvinceName(centerLatitude, centerLongitude);
+            if (districtIds.length > 0 && mergeQuyHoachIds.length > 0) {
+                const allPlans = await fetchAllQuyHoach();
+                const boudingBoxes = allPlans
+                    .filter((item) => quyhoachIds.includes(item.id.toString()))
+                    .map((item) => item.boundingbox.split(',').map(Number));
+                const center = getCenterOfBoundingBoxes(boudingBoxes);
+                const info = await fetchProvinceName(center[1], center[0]);
                 dispatch(
                     setCurrentLocation({
-                        lat: centerLatitude,
-                        lon: centerLongitude,
+                        lat: center[1],
+                        lon: center[0],
                         provinceName: info.provinceName,
                         districtName: info.districtName,
                     }),
                 );
+                dispatch(setQuyHoachIds(quyhoachIds));
 
                 searchParams.set('quyhoach', quyhoachIds.toString());
-                searchParams.set('vitri', `${centerLatitude},${centerLongitude}`);
+                searchParams.set('vitri', `${center[1]},${center[0]}`);
             } else {
                 searchParams.delete('quyhoach');
             }

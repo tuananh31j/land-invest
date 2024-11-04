@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { setQuery } from '../redux/filterSliceTable/filterSliceTable';
+import { resetQuery, setQuery } from '../redux/filterSliceTable/filterSliceTable';
 
 const useFilter = () => {
     const dispatch = useDispatch();
@@ -14,13 +14,15 @@ const useFilter = () => {
         const params = {};
         searchParams?.forEach((value, key) => {
             params[key] = value;
+            console.log(key, value, 'sffsfdsdf');
         });
         // @dispatch
         dispatch(setQuery(params));
     }, []);
+    console.log(query.toString(), 'dfvfgsdff');
 
     const reset = () => {
-        dispatch(setQuery({}));
+        dispatch(resetQuery());
         navigator(`${pathname}`);
     };
 
