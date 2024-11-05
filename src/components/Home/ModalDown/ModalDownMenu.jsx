@@ -4,6 +4,7 @@ import Draggable from 'react-draggable';
 import './ModalDownMenu.scss';
 import TreeDirectory from '../../TreeDirectory';
 import useTableListOpen from '../../../hooks/useTableListOpen';
+import useWindowSize from '../../../hooks/useWindowSise';
 
 const ModalDownMenu = ({ handleClose, show }) => {
     const [disabled, setDisabled] = useState(true);
@@ -12,7 +13,7 @@ const ModalDownMenu = ({ handleClose, show }) => {
         handleOpenTableList();
         handleClose();
     };
-
+    const windowSize = useWindowSize();
     const [bounds, setBounds] = useState({
         left: 0,
         top: 0,
@@ -72,7 +73,8 @@ const ModalDownMenu = ({ handleClose, show }) => {
                     onFocus={() => {}}
                     onBlur={() => {}}
                 >
-                    Danh Sách Quy Hoạch <Button onClick={handleOpenTable}>Mở rộng</Button>
+                    Danh Sách Quy Hoạch{' '}
+                    {windowSize.windowWidth > 768 && <Button onClick={handleOpenTable}>Mở rộng</Button>}
                 </div>
             }
         >

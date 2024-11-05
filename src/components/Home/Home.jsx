@@ -36,6 +36,7 @@ import TablePlans from './TablePlans';
 import useTableListOpen from '../../hooks/useTableListOpen';
 import useFilter from '../../hooks/useFilter';
 import useTable from '../../hooks/useTable';
+import useWindowSize from '../../hooks/useWindowSise';
 
 let DefaultIcon = L.icon({
     iconUrl: icon,
@@ -61,6 +62,7 @@ function Home() {
     const { resetFilter } = useTable();
     const mapRef = useRef();
     const location = useLocation();
+    const windowSize = useWindowSize();
 
     // useEffect(() => {
     //     const searchParams = new URLSearchParams(location.search);
@@ -187,6 +189,7 @@ function Home() {
             description,
         });
     };
+    const isPhoneSize = windowSize.windowWidth < 768;
     // useEffect(() => {
     //     const fetchData = async () => {
     //         try {
@@ -209,16 +212,24 @@ function Home() {
     return (
         <>
             {contextHolder}
-            <div className="home-container" style={{ overflowY: 'auto' }}>
+            <div
+                className="home-container"
+                style={
+                    isPhoneSize
+                        ? { overflowY: 'auto', position: 'relative', height: '80vh' }
+                        : { overflowY: 'auto', position: 'relative', height: '100vh' }
+                }
+            >
                 <div
                     className="slider-container"
                     style={{
-                        position: 'absolute',
-                        top: 10,
+                        position: 'fixed',
+                        top: 120,
                         right: 10,
                         zIndex: 1000,
                         padding: 10,
                         borderRadius: 4,
+                        marginTop: isPhoneSize ? 40 : 0,
                     }}
                 >
                     <div className="slider-container-range">
@@ -275,25 +286,15 @@ function Home() {
                 {/* Header Container */}
                 <div className="container-header">
                     <div className="container-header-select">
-                        {/* <div className="slider-container-range Plot-saved">
-                            <SaveIcon />
-                            <div className="slider-Plot-saved">
-                                <span>Thửa đã lưu</span>
-                                <p>
-                                    <FaAngleDown />
-                                </p>
-                            </div>
-                        </div> */}
                         <div className="slider-container-location">
                             <GrLocation />
                             <span>
                                 {provinceName}, {districtName}
                             </span>
                         </div>
-
                         <div
                             ref={buttonRef}
-                            className={`slider-list-item ${activeItem === 3 ? 'active_item' : ''}`}
+                            className={`slider-list-item ${activeItem === 3 ? 'active_item text-[10px]' : ''}`}
                             onClick={() => handleClick(3)}
                         >
                             Danh sách quy hoạch
@@ -331,7 +332,7 @@ function Home() {
                 {isModalUpLoadVisible || (
                     <div className="upload-image-container" onClick={() => setIsModalUploadVisible(true)}>
                         <FileUploadIcon />
-                        <p>Thêm hình ảnh mảnh đất, dự án</p>
+                        {windowSize.windowWidth > 768 && <p>Thêm hình ảnh mảnh đất, dự án</p>}
                         <FiPlus size={22} />
                     </div>
                 )}
@@ -351,14 +352,7 @@ function Home() {
                 />
             </div>
             <Drawer
-                title={
-                    <div className="flex justify-between items-baseline">
-                        <p>Kho dữ liệu</p>
-                        {/* <Button type="dashed" className="text-sm" onClick={resetFilter}>
-                            Đặt lại bộ lọc
-                        </Button> */}
-                    </div>
-                }
+                title={'Kho dữ liệu quy hoạch'}
                 width={'100vw'}
                 height={'100vh'}
                 onClose={handleCloseTableList}

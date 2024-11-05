@@ -2,7 +2,6 @@ import Header from './components/Header/Header';
 import { Outlet, RouterProvider, createBrowserRouter } from 'react-router-dom';
 import './index.css';
 import './App.scss';
-import { useEffect } from 'react';
 import Home from './components/Home/Home';
 import News from './components/News/News';
 import Auction from './components/Auction/Auction';
@@ -27,8 +26,8 @@ import HotNews from './components/News/categorizeNews/HotNews';
 
 const Layout = () => {
     return (
-        <div className="App">
-            <div className="app-header">
+        <div className="App" style={{}}>
+            <div className="app-header" style={{ maxHeight: '60px' }}>
                 <Header />
             </div>
             <div className="app-content">
@@ -45,7 +44,7 @@ function App() {
         {
             path: '/',
             element: <Layout />,
-            // errorElement: <NotFound />,
+            errorElement: <NotFound />,
             children: [
                 {
                     index: true,

@@ -1,8 +1,5 @@
 /* giao diện Mobile */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-@media (max-width: 46.1875em) {
+@media (max-width: 768px) {
     .app-content {
         overflow: auto;
     }
@@ -135,7 +132,7 @@
     }
 
     .slider-container {
-        bottom: 195px;
+        bottom: 5px;
         top: auto !important;
         right: -3px !important;
     }

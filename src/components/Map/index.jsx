@@ -21,6 +21,7 @@ import { debounce } from 'lodash';
 import { polygonsData } from '../../data/polygons';
 import getCenterOfBoundingBoxes from '../../function/getCenterOfBoundingBoxes';
 import { setQuyHoachIds } from '../../redux/plansSelected/plansSelected';
+import useWindowSize from '../../hooks/useWindowSise';
 
 const customIcon = new L.Icon({
     iconUrl: require('../../assets/marker.png'),
@@ -45,6 +46,7 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
     const [messageApi, contextHolder] = message.useMessage();
     const quyHoachIds = useSelector((state) => state.plansSelected.quyhoach);
     const { initialCenter, initialZoom } = useMapParams();
+    const windowSize = useWindowSize();
 
     // useEffect(() => {
     //     const searchParams = new URLSearchParams(locationLink.search);
@@ -384,7 +386,7 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                 </Radio.Group>
             </Modal>
             <MapContainer
-                style={{ width: '100%', height: 'calc(100vh - 56px)' }}
+                style={{ width: '100vw', height: 'calc(100% - 60px)' }}
                 center={initialCenter}
                 zoom={initialZoom}
                 maxZoom={30}

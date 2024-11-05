@@ -1,20 +1,17 @@
-import React, { memo, useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './ModalUploadImage.scss';
-import { Button, Image, Input, Modal, notification, Select, Space } from 'antd';
+import { Image, Input, Modal, Space } from 'antd';
 import { DollarIcon, FileUploadIcon } from '../../Icons';
 import { FiPlus } from 'react-icons/fi';
 import { useSelector } from 'react-redux';
 import axios from 'axios'; // Import Axios
-import fetchDistrictName, { getDistrict, getProvince } from '../../../function/findProvince';
-import fetchProvinceName from '../../../function/findProvince';
-import { findClosestDistrict } from '../../../function/findClosestDistrict';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import Slider from 'react-slick';
 import { filterByHouse } from '../../../constants/filter';
 import Checkbox from '../../Checkbox';
 import { MdOutlineLandslide } from 'react-icons/md';
-import { fetchDistrictsByProvinces, searchLocation } from '../../../services/api';
+import { searchLocation } from '../../../services/api';
 
 const ModalUploadImage = ({
     showNotification,
