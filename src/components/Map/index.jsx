@@ -396,11 +396,19 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                 <MapEvents />
                 {currentLocation && <ResetCenterView lat={currentLocation.lat} lon={currentLocation.lon} />}
                 <LayersControl>
-                    <LayersControl.BaseLayer checked name="Map vệ tinh">
+                    {/* <LayersControl.BaseLayer checked name="Map vệ tinh">
                         <TileLayer
                             url={`https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoidHVhbmFuaDMxaiIsImEiOiJjbTMzMmo2d3AxZ2g0Mmlwejl1YzM0czRoIn0.vCpAJx2b_FVhC3LDfmdLTA`}
                             attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> contributors'
                             maxZoom={22}
+                        />
+                    </LayersControl.BaseLayer> */}
+                    <LayersControl.BaseLayer checked name="Map vệ tinh">
+                        <TileLayer
+                            url="http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}"
+                            subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+                            maxZoom={30}
+                            attribution="&copy; <a href='https://www.google.com/maps'>Google Maps</a> contributors"
                         />
                     </LayersControl.BaseLayer>
                     <LayersControl.BaseLayer name="Map mặc định">
