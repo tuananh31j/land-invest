@@ -20,7 +20,7 @@ import UserLocationMarker from '../UserLocationMarker';
 import { debounce } from 'lodash';
 import { polygonsData } from '../../data/polygons';
 import getCenterOfBoundingBoxes from '../../function/getCenterOfBoundingBoxes';
-import { setQuyHoachIds } from '../../redux/plansSelected/plansSelected';
+import { setPlansInfo } from '../../redux/plansSelected/plansSelected';
 import useWindowSize from '../../hooks/useWindowSise';
 
 const customIcon = new L.Icon({
@@ -44,9 +44,8 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
     const listMarker = useSelector(selectFilteredMarkers);
     const currentLocation = useSelector((state) => state.searchQuery.searchResult);
     const [messageApi, contextHolder] = message.useMessage();
-    const quyHoachIds = useSelector((state) => state.plansSelected.quyhoach);
+    const plansStored = useSelector((state) => state.plansSelected.quyhoach);
     const { initialCenter, initialZoom } = useMapParams();
-    const windowSize = useWindowSize();
 
     // useEffect(() => {
     //     const searchParams = new URLSearchParams(locationLink.search);
@@ -289,14 +288,43 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
         (async () => {
             try {
                 const vitri = searchParams.get('vitri') ? searchParams.get('vitri').split(',') : null;
-                const quyhoach = searchParams.get('quyhoach') ? searchParams.get('quyhoach').split(',') : null;
-                if (!!quyhoach) {
+                const quyhoachIds = searchParams.get('quyhoach') ? searchParams.get('quyhoach').split(',') : null;
+                if (!!quyhoachIds) {
                     const allPlans = await fetchAllQuyHoach();
-                    const boudingBoxes = allPlans
-                        .filter((item) => quyhoach.includes(item.id.toString()))
-                        .map((item) => item.boundingbox.split(',').map(Number));
+                    const map = {};
+                    const memory = [];
+                    allPlans
+                        .filter((item) => quyhoachIds.includes(item.id.toString()))
+                        .forEach((element) => {
+                            const key = `${element.idDistrict}-${element.idProvince}`;
+                            map[key] = (map[key] || 0) + 1;
+                        });
+
+                    const plansFiltered = allPlans
+                        .filter((item) => quyhoachIds.includes(item.id.toString()))
+                        .filter((item) => {
+                            const key = `${item.idDistrict}-${item.idProvince}`;
+                            const hasManyPlan = map[key] > 1;
+                            const is2030 = item.description.toLowerCase().includes('2030');
+                            const isNotInMemory = !memory.includes(key);
+                            if (hasManyPlan && is2030) {
+                                return true;
+                            } else if (isNotInMemory) {
+                                memory.push(key);
+                                return true;
+                            }
+                            return false;
+                        })
+                        .map((item) => item);
+
+                    const boudingBoxes = plansFiltered
+                        .map((item) => {
+                            return item.boundingbox.replace(/[\[\]]/g, '').split(',');
+                        })
+                        .filter((item) => item != null);
+
                     const center = getCenterOfBoundingBoxes(boudingBoxes);
-                    dispatch(setQuyHoachIds(quyhoach));
+                    dispatch(setPlansInfo(plansFiltered));
                     const info = await fetchProvinceName(center[1], center[0]);
                     dispatch(
                         setCurrentLocation({
@@ -309,7 +337,7 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                 } else if (vitri && vitri.length > 0) {
                     const lat = parseFloat(vitri[0]);
                     const lng = parseFloat(vitri[1]);
-                    dispatch(setQuyHoachIds([]));
+                    dispatch(setPlansInfo([]));
                     const info = await fetchProvinceName(lat, lng);
                     dispatch(
                         setCurrentLocation({
@@ -344,7 +372,6 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
 
         fetchData();
     }, [idProvince]);
-    console.log(quyHoachIds, 'quyHoachIds');
     const handleShareClick = (lat, lng) => {
         const urlParams = new URLSearchParams(locationLink.search);
 
@@ -420,11 +447,12 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                     </LayersControl.BaseLayer>
                 </LayersControl>
                 <Pane name="PaneThai" style={{ zIndex: 650 }}>
-                    {quyHoachIds &&
-                        quyHoachIds.map((item, index) => (
+                    {plansStored &&
+                        plansStored.length > 0 &&
+                        plansStored.map((item, index) => (
                             <TileLayer
                                 key={index}
-                                url={`https://apilandinvest.gachmen.org/get_api_quyhoach/${item}/{z}/{x}/{y}`}
+                                url={`${item.huyen_image}/{z}/{x}/{y}`}
                                 pane="overlayPane"
                                 minZoom={1}
                                 maxZoom={22}

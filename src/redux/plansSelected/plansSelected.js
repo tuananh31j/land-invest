@@ -8,11 +8,11 @@ export const searchQuery = createSlice({
     name: 'plansSelected',
     initialState,
     reducers: {
-        setQuyHoachIds: (state, action) => {
+        setPlansInfo: (state, action) => {
             state.quyhoach = action.payload;
         },
     },
 });
 
-export const { setQuyHoachIds } = searchQuery.actions;
+export const { setPlansInfo } = searchQuery.actions;
 export default searchQuery;

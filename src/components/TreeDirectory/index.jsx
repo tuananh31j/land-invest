@@ -1,7 +1,7 @@
 import React, { useState, useEffect, memo, useCallback, useMemo } from 'react';
 import { Tree, Spin } from 'antd';
 import { fetchAllProvince, fetchAllQuyHoach, fetchDistrictsByProvinces } from '../../services/api';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useDebounce } from 'use-debounce';
 import removeAccents from 'remove-accents';
 import { LoadingOutlined } from '@ant-design/icons';
@@ -11,14 +11,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setCurrentLocation } from '../../redux/search/searchSlice';
 import fetchProvinceName from '../../function/findProvince';
 import getCenterOfBoundingBoxes from '../../function/getCenterOfBoundingBoxes';
-import { setQuyHoachIds } from '../../redux/plansSelected/plansSelected';
+import { setPlansInfo } from '../../redux/plansSelected/plansSelected';
 import useTable from '../../hooks/useTable';
 
 const TreeDirectory = () => {
     const quyHoachIdsStored = useSelector((state) => state.plansSelected.quyhoach);
     const [treeData, setTreeData] = useState([]);
     const [originalTreeData, setOriginalTreeData] = useState([]);
-    const [checkedKeys, setCheckedKeys] = useState(quyHoachIdsStored.map((id) => `plan-${id}`));
+    const [checkedKeys, setCheckedKeys] = useState(quyHoachIdsStored.map((item) => `plan-${item.id}`));
     const [expandedKeys, setExpandedKeys] = useState([]);
     const [autoExpandParent, setAutoExpandParent] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -27,8 +27,8 @@ const TreeDirectory = () => {
     const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
     const navigate = useNavigate();
     const location = useLocation();
-    const searchParams = new URLSearchParams(location.search);
     const dispatch = useDispatch();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { query } = useTable();
 
     useEffect(() => {
@@ -39,7 +39,7 @@ const TreeDirectory = () => {
             setCheckedKeys(quyhoachKeys);
         } else {
             setCheckedKeys([]);
-            setQuyHoachIds([]);
+            setPlansInfo([]);
         }
     }, [query]);
 
@@ -124,47 +124,98 @@ const TreeDirectory = () => {
 
     const onCheck = useCallback(
         async (checkedKeysValue) => {
-            if (!Array.isArray(checkedKeysValue)) return;
-            setCheckedKeys(checkedKeysValue);
-            console.log(checkedKeysValue, 'checkedKeysValue');
-            const quyhoachIds = checkedKeysValue
-                .filter((key) => key?.startsWith('plan-'))
-                .map((key) => key?.split('-')[1])
-                .filter((id) => id != null);
-            const districtIds = checkedKeysValue
-                .filter((key) => key?.startsWith('district-'))
-                .map((key) => key?.split('-')[1])
-                .filter((id) => id != null);
-            const mergeQuyHoachIds = [...quyhoachIds, ...new Set(quyHoachIdsStored)];
+            try {
+                if (!Array.isArray(checkedKeysValue)) return;
+                setCheckedKeys(checkedKeysValue);
+                console.log(checkedKeysValue, 'checkedKeysValue');
+                const quyhoachIds = checkedKeysValue
+                    .filter((key) => key?.startsWith('plan-'))
+                    .map((key) => key?.split('-')[1])
+                    .filter((id) => id != null);
+                const districtIds = checkedKeysValue
+                    .filter((key) => key?.startsWith('district-'))
+                    .map((key) => key?.split('-')[1])
+                    .filter((id) => id != null);
 
-            if (districtIds.length > 0 && mergeQuyHoachIds.length > 0) {
-                const allPlans = await fetchAllQuyHoach();
-                const boudingBoxes = allPlans
-                    .filter((item) => quyhoachIds.includes(item.id.toString()))
-                    .map((item) => item.boundingbox.split(',').map(Number));
-                const center = getCenterOfBoundingBoxes(boudingBoxes);
-                const info = await fetchProvinceName(center[1], center[0]);
-                dispatch(
-                    setCurrentLocation({
-                        lat: center[1],
-                        lon: center[0],
-                        provinceName: info.provinceName,
-                        districtName: info.districtName,
-                    }),
-                );
-                dispatch(setQuyHoachIds(quyhoachIds));
+                if (districtIds.length > 0 && quyhoachIds.length > 0) {
+                    const allPlans = await fetchAllQuyHoach();
+                    const map = {};
+                    const memory = [];
+                    allPlans
+                        .filter((item) => quyhoachIds.includes(item.id.toString()))
+                        .forEach((element) => {
+                            const key = `${element.idDistrict}-${element.idProvince}`;
+                            map[key] = (map[key] || 0) + 1;
+                        });
+                    // allPlans.filter((item) => {
+                    //     const key = `${item.idDistrict}-${item.idProvince}`;
+                    //     const hasManyPlan = map[key] > 1;
+                    //     const is2030 = item.description.toLowerCase().includes('2030');
+                    //     const isNotInMemory = !memory.includes(key);
+                    //     console.log(isNotInMemory, 'isNotInMemory');
+                    //     if (hasManyPlan && is2030) {
+                    //         return true;
+                    //     } else if (isNotInMemory) {
+                    //         memory.push(key);
+                    //         return true;
+                    //     }
+                    //     return false;
+                    // });
 
-                searchParams.set('quyhoach', quyhoachIds.toString());
-                searchParams.set('vitri', `${center[1]},${center[0]}`);
-            } else {
-                searchParams.delete('quyhoach');
+                    const plansFiltered = allPlans
+                        .filter((item) => quyhoachIds.includes(item.id.toString()))
+                        .filter((item) => {
+                            const key = `${item.idDistrict}-${item.idProvince}`;
+                            const hasManyPlan = map[key] > 1;
+                            console.log(item.description);
+                            const is2030 = item.description.toLowerCase().includes('2030');
+                            const isNotInMemory = !memory.includes(key);
+                            if (hasManyPlan && is2030) {
+                                console.log('object');
+                                return true;
+                            } else if (isNotInMemory) {
+                                memory.push(key);
+                                console.log('3333');
+                                return true;
+                            }
+                            return false;
+                        })
+                        .map((item) => item);
+
+                    const boudingBoxes = plansFiltered
+                        .map((item) => {
+                            return item.boundingbox.replace(/[\[\]]/g, '').split(',');
+                        })
+                        .filter((item) => item != null);
+                    console.log(plansFiltered, 'plansFiltered');
+                    console.log(allPlans, 'allPlans');
+                    console.log(boudingBoxes, 'boudingBoxes');
+                    const center = getCenterOfBoundingBoxes(boudingBoxes);
+                    const info = await fetchProvinceName(center[1], center[0]);
+                    console.log(info, 'info');
+
+                    dispatch(
+                        setCurrentLocation({
+                            lat: center[1],
+                            lon: center[0],
+                            provinceName: info.provinceName,
+                            districtName: info.districtName,
+                        }),
+                    );
+                    dispatch(setPlansInfo(plansFiltered));
+
+                    searchParams.set('quyhoach', quyhoachIds.toString());
+                    setSearchParams(searchParams);
+                } else {
+                    searchParams.delete('quyhoach');
+                    setSearchParams(searchParams);
+                    dispatch(setPlansInfo([]));
+                }
+            } catch (error) {
+                console.log(error, '4444444');
             }
-
-            navigate({
-                search: searchParams.toString(),
-            });
         },
-        [navigate, searchParams],
+        [dispatch, searchParams, setSearchParams],
     );
 
     const filterTreeData = (searchTerm) => {

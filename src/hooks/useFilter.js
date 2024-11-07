@@ -14,12 +14,10 @@ const useFilter = () => {
         const params = {};
         searchParams?.forEach((value, key) => {
             params[key] = value;
-            console.log(key, value, 'sffsfdsdf');
         });
         // @dispatch
         dispatch(setQuery(params));
     }, []);
-    console.log(query.toString(), 'dfvfgsdff');
 
     const reset = () => {
         dispatch(resetQuery());
