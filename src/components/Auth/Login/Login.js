@@ -12,29 +12,43 @@ const Login = () => {
     const [form] = Form.useForm();
     const navigate = useNavigate();
 
-    //   const handleClickRegister = () => {
-    //       handleClose()
-    //       navigate('/register')
-    //   }
     const onFinish = async (values) => {
-        const { Username, Password } = values;
-        setIsSubmit(true);
-        const res = await callLogin(Username, Password);
-        setIsSubmit(false);
-        if (res) {
-            localStorage.setItem('access_token', res.data.access_token);
-            localStorage.setItem('refresh_token', res.data.access_token);
-            localStorage.setItem('user_id', res.data.UserID);
-            document.cookie = `access_token_cookie=${res.data.access_token}; path=/`;
+        try {
+            const { Username, Password } = values;
+            setIsSubmit(true);
+            const res = await callLogin(Username, Password);
+            setIsSubmit(false);
+            console.log(res, 'res');
+            if (res) {
+                if (Number(res.data.Status) >= 200 || Number(res.data.Status) < 300) {
+                    localStorage.setItem('access_token', res.data.access_token);
+                    localStorage.setItem('refresh_token', res.data.access_token);
+                    localStorage.setItem('user_id', res.data.UserID);
+                    document.cookie = `access_token_cookie=${res.data.access_token}; path=/`;
 
-            dispatch(doLoginAction(JSON.parse(res.config.data)));
-            dispatch(doLoginDataUser(res.data));
-            message.success('Đăng nhập tài khoản thành công!');
-            navigate('/');
-        } else {
+                    dispatch(doLoginAction(JSON.parse(res.config.data)));
+                    dispatch(doLoginDataUser(res.data));
+                    message.success('Đăng nhập tài khoản thành công!');
+                    navigate('/');
+                } else {
+                    notification.error({
+                        message: 'Có lỗi xảy ra',
+                        description: res.message && Array.isArray(res.message) ? res.message[0] : res.message[1],
+                        duration: 5,
+                    });
+                }
+            } else {
+                notification.error({
+                    message: 'Có lỗi xảy ra',
+                    description: res.message && Array.isArray(res.message) ? res.message[0] : res.message[1],
+                    duration: 5,
+                });
+            }
+        } catch (error) {
+            setIsSubmit(false);
             notification.error({
-                message: 'Có lỗi xáy ra',
-                description: res.message && Array.isArray(res.message) ? res.message[0] : res.message[1],
+                message: error.message,
+                description: error.message && Array.isArray(error.message) ? error.message[0] : error.message[1],
                 duration: 5,
             });
         }
@@ -143,14 +157,21 @@ const Login = () => {
 
                     <p style={{ textAlign: 'center' }}>
                         Bạn chưa có tài khoản{' '}
-                        <a
-                            style={{ marginLeft: '3px', textDecoration: 'underline' }}
+                        <button
+                            style={{
+                                marginLeft: '3px',
+                                textDecoration: 'underline',
+                                background: 'none',
+                                border: 'none',
+                                color: 'blue',
+                                cursor: 'pointer',
+                            }}
                             onClick={() => {
                                 navigate('/register');
                             }}
                         >
                             Đăng ký
-                        </a>
+                        </button>
                     </p>
                 </Form>
             </div>

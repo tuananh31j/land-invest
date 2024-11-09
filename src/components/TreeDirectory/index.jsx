@@ -25,8 +25,6 @@ const TreeDirectory = () => {
     const [loading, setLoading] = useState(false);
     const [loadingSearch, setLoadingSearch] = useState(false);
     const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
-    const navigate = useNavigate();
-    const location = useLocation();
     const dispatch = useDispatch();
     const [searchParams, setSearchParams] = useSearchParams();
     const { query } = useTable();
@@ -204,6 +202,7 @@ const TreeDirectory = () => {
                     );
                     dispatch(setPlansInfo(plansFiltered));
 
+                    searchParams.delete('quyhoach');
                     searchParams.set('quyhoach', quyhoachIds.toString());
                     setSearchParams(searchParams);
                 } else {

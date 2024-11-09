@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polygon, LayersCo
 import L from 'leaflet';
 import DrawerView from '../Home/DrawerView';
 import fetchProvinceName from '../../function/findProvince';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import ResetCenterView from '../../function/resetCenterView';
 import { selectFilteredMarkers } from '../../redux/filter/filterSelector';
@@ -11,7 +11,7 @@ import { formatToVND } from '../../function/formatToVND';
 import { setListMarker } from '../../redux/listMarker/listMarkerSllice';
 import useMapParams from '../../hooks/useMapParams';
 import { FaShareAlt } from 'react-icons/fa';
-import { message, Modal, Radio } from 'antd';
+import { message, Modal, notification, Radio } from 'antd';
 import { fetchAllQuyHoach, fetchListInfo, fetQuyHoachByIdDistrict, searchLocation } from '../../services/api';
 import * as turf from '@turf/turf';
 import useGetParams from '../Hooks/useGetParams';
@@ -44,9 +44,11 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
     const listMarker = useSelector(selectFilteredMarkers);
     const currentLocation = useSelector((state) => state.searchQuery.searchResult);
     const [messageApi, contextHolder] = message.useMessage();
+    const [api, contextHolderNoti] = notification.useNotification();
     const plansStored = useSelector((state) => state.plansSelected.quyhoach);
     const { initialCenter, initialZoom } = useMapParams();
-
+    const windowSize = useWindowSize();
+    const [searchPara, setSearchPara] = useSearchParams();
     // useEffect(() => {
     //     const searchParams = new URLSearchParams(locationLink.search);
     //     const vitri = searchParams.get('vitri');
@@ -263,11 +265,14 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
         const fetchData = async () => {
             try {
                 const data = await fetQuyHoachByIdDistrict(idDistrict);
+                const plans = await fetchAllQuyHoach();
                 if (data && data.length > 0 && data[0]?.huyen_image !== '') {
                     if (data.length > 1) {
-                        setPlanOption(data);
+                        openNotification(true)(data, plans);
                     } else {
-                        setSelectedIDQuyHoach(data[0]?.id);
+                        dispatch(setPlansInfo(plans.filter((item) => item.id === data[0].id)));
+                        searchPara.set('quyhoach', data[0].id.toString());
+                        setSearchPara(searchPara);
                     }
                 } else {
                     if (idDistrict && listenDblClick) {
@@ -394,10 +399,34 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                 });
             });
     };
+    const openNotification = (pauseOnHover) => (data, plans) => {
+        api.open({
+            message: 'Notification Title',
+            description: (
+                <Radio.Group
+                    onChange={(e) => {
+                        dispatch(setPlansInfo(plans.filter((item) => item.id === data[0].id)));
+                        api.destroy();
+                    }}
+                    value={selectedIDQuyHoach}
+                >
+                    {data.map((plan) => (
+                        <Radio key={plan.id} value={plan.id}>
+                            {plan.description}
+                        </Radio>
+                    ))}
+                </Radio.Group>
+            ),
+            showProgress: true,
+            pauseOnHover,
+        });
+    };
     return (
         <>
             {contextHolder}
-            <Modal
+            {contextHolderNoti}
+
+            {/* <Modal
                 title="Khu vực này có nhiều quy hoạch, vui lòng chọn quy hoạch để xem!"
                 open={planOption.length > 1}
                 onOk={() => setPlanOption([])}
@@ -411,7 +440,7 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                         </Radio>
                     ))}
                 </Radio.Group>
-            </Modal>
+            </Modal> */}
             <MapContainer
                 style={{ width: '100vw', height: 'calc(100% - 60px)' }}
                 center={initialCenter}
@@ -423,21 +452,26 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                 <MapEvents />
                 {currentLocation && <ResetCenterView lat={currentLocation.lat} lon={currentLocation.lon} />}
                 <LayersControl>
-                    {/* <LayersControl.BaseLayer checked name="Map vệ tinh">
-                        <TileLayer
-                            url={`https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoidHVhbmFuaDMxaiIsImEiOiJjbTMzMmo2d3AxZ2g0Mmlwejl1YzM0czRoIn0.vCpAJx2b_FVhC3LDfmdLTA`}
-                            attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> contributors'
-                            maxZoom={22}
-                        />
-                    </LayersControl.BaseLayer> */}
-                    <LayersControl.BaseLayer checked name="Map vệ tinh">
-                        <TileLayer
-                            url="http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}"
-                            subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
-                            maxZoom={30}
-                            attribution="&copy; <a href='https://www.google.com/maps'>Google Maps</a> contributors"
-                        />
-                    </LayersControl.BaseLayer>
+                    {windowSize.windowWidth < 768 && (
+                        <LayersControl.BaseLayer checked name="Map vệ tinh">
+                            <TileLayer
+                                url={`https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoidHVhbmFuaDMxaiIsImEiOiJjbTMzMmo2d3AxZ2g0Mmlwejl1YzM0czRoIn0.vCpAJx2b_FVhC3LDfmdLTA`}
+                                attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> contributors'
+                                maxZoom={22}
+                            />
+                        </LayersControl.BaseLayer>
+                    )}
+                    {windowSize.windowWidth > 768 && (
+                        <LayersControl.BaseLayer checked name="Map vệ tinh">
+                            <TileLayer
+                                url="http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}"
+                                subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+                                maxZoom={30}
+                                attribution="&copy; <a href='https://www.google.com/maps'>Google Maps</a> contributors"
+                            />
+                        </LayersControl.BaseLayer>
+                    )}
+
                     <LayersControl.BaseLayer name="Map mặc định">
                         <TileLayer
                             maxZoom={22}
@@ -459,7 +493,7 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                                 opacity={opacity}
                             />
                         ))}
-                    {selectedIDQuyHoach && (
+                    {/* {selectedIDQuyHoach && (
                         <TileLayer
                             url={`https://apilandinvest.gachmen.org/get_api_quyhoach/${selectedIDQuyHoach}/{z}/{x}/{y}`}
                             pane="overlayPane"
@@ -467,7 +501,7 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                             maxZoom={22}
                             opacity={opacity}
                         />
-                    )}
+                    )} */}
                 </Pane>
                 {currentLocation && currentLocation.lat && currentLocation.lon && (
                     <Marker position={[currentLocation.lat, currentLocation.lon]} icon={customIcon}>

@@ -1,5 +1,5 @@
 import './Register.scss';
-import { Button, Form, Input, message, notification, Radio } from 'antd';
+import { Button, Form, Input, message, Modal, notification, Radio } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
@@ -18,6 +18,7 @@ const Register = () => {
     const [Longitude, setLongitude] = useState(null);
     const [ipAddress, setIpAddress] = useState('');
     const AvatarLink = null;
+    const [isCheckEmail, setIsCheckEmail] = useState(false);
 
     //
     useEffect(() => {
@@ -74,8 +75,7 @@ const Register = () => {
             setIsSubmit(false);
 
             if (res) {
-                message.success('Account registration successful, email confirmation!');
-                navigate('/login');
+                setIsCheckEmail(true);
             } else {
                 message.error('Account registration error, Please register again');
             }
@@ -92,6 +92,17 @@ const Register = () => {
 
     return (
         <>
+            <Modal
+                title="Thông báo"
+                open={isCheckEmail}
+                onOk={() => {
+                    setIsCheckEmail(false);
+                    navigate('/login');
+                }}
+                onCancel={() => setIsCheckEmail(false)}
+            >
+                <p>Đăng ký thành công, vui lòng kiểm tra email để xác nhận tài khoản</p>
+            </Modal>
             <div className="login">
                 <Form
                     form={form}
