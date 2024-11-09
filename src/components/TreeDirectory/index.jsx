@@ -39,7 +39,7 @@ const TreeDirectory = () => {
             setCheckedKeys([]);
             setPlansInfo([]);
         }
-    }, [query]);
+    }, [query, quyHoachIdsStored]);
 
     useEffect(() => {
         if (debouncedSearchTerm) {
