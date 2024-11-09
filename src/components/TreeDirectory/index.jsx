@@ -105,7 +105,7 @@ const TreeDirectory = () => {
 
     const fetchPlanningData = async (districtId) => {
         try {
-            const { data } = await axios.get(`https://apilandinvest.gachmen.org/quyhoach1quan/${districtId}`);
+            const { data } = await axios.get(`https://api.quyhoach.xyz/quyhoach1quan/${districtId}`);
             if (Array.isArray(data) && data.length > 0) {
                 return data.map((plan) => ({
                     title: plan.description,

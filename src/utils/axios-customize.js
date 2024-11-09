@@ -1,7 +1,7 @@
 import axios from 'axios';
 // Create Axios instance
 const instance = axios.create({
-    baseURL: `https://apilandinvest.gachmen.org`,
+    baseURL: `https://api.quyhoach.xyz`,
     headers: {
         Authorization: `Bearer ${localStorage.getItem('access_token')}`,
     },

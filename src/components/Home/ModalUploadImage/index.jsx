@@ -105,7 +105,7 @@ const ModalUploadImage = ({
         };
 
         try {
-            const response = await axios.post('https://apilandinvest.gachmen.org/api/location/add_info', payload, {
+            const response = await axios.post('https://api.quyhoach.xyz/api/location/add_info', payload, {
                 headers: {
                     'Content-Type': 'application/json',
                 },

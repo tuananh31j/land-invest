@@ -495,7 +495,7 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                         ))}
                     {/* {selectedIDQuyHoach && (
                         <TileLayer
-                            url={`https://apilandinvest.gachmen.org/get_api_quyhoach/${selectedIDQuyHoach}/{z}/{x}/{y}`}
+                            url={`https://api.quyhoach.xyz/get_api_quyhoach/${selectedIDQuyHoach}/{z}/{x}/{y}`}
                             pane="overlayPane"
                             minZoom={12}
                             maxZoom={22}

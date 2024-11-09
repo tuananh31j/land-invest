@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export const findClosestDistrict = async (provinceId, districtName) => {
     try {
-        const response = await axios.get(`https://apilandinvest.gachmen.org/api/districts/Byprovince/${provinceId}`);
+        const response = await axios.get(`https://api.quyhoach.xyz/api/districts/Byprovince/${provinceId}`);
         const districts = response.data;
 
         const normalizedSearchName = districtName.toLowerCase()?.replace(/[^\w\s]/gi, '');
