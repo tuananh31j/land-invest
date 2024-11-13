@@ -5,7 +5,6 @@ import Draggable from 'react-draggable';
 
 import { fetQuyHoachByIdDistrict } from '../../../services/api';
 import PlanMapSection from '../../PlanMapSection';
-import { useLocation, useNavigate } from 'react-router-dom';
 
 const ModalQuyHoach = (props) => {
     const { isShowModalQuyHoach, handleCloseQuyHoach, idDistrict } = props;
@@ -21,8 +20,6 @@ const ModalQuyHoach = (props) => {
     // const {districtId} = useSelector((state) => state.map);
     const [listQuyHoach, setListQuyHoach] = useState([]);
     const [selectedIDQuyHoach, setSelectedIDQuyHoach] = useState([]);
-    const location = useLocation();
-    const navigate = useNavigate();
 
     const onStart = (_event, uiData) => {
         const { clientWidth, clientHeight } = window.document.documentElement;

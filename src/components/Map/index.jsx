@@ -1,5 +1,15 @@
 import React, { memo, useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polygon, LayersControl, Pane } from 'react-leaflet';
+import {
+    MapContainer,
+    TileLayer,
+    Marker,
+    Popup,
+    useMapEvents,
+    Polygon,
+    LayersControl,
+    Pane,
+    Polyline,
+} from 'react-leaflet';
 import L from 'leaflet';
 import DrawerView from '../Home/DrawerView';
 import fetchProvinceName from '../../function/findProvince';
@@ -11,9 +21,8 @@ import { formatToVND } from '../../function/formatToVND';
 import { setListMarker } from '../../redux/listMarker/listMarkerSllice';
 import useMapParams from '../../hooks/useMapParams';
 import { FaShareAlt } from 'react-icons/fa';
-import { message, Modal, notification, Radio } from 'antd';
+import { message, notification, Radio } from 'antd';
 import { fetchAllQuyHoach, fetchListInfo, fetQuyHoachByIdDistrict, searchLocation } from '../../services/api';
-import * as turf from '@turf/turf';
 import useGetParams from '../Hooks/useGetParams';
 import { setCurrentLocation } from '../../redux/search/searchSlice';
 import UserLocationMarker from '../UserLocationMarker';
@@ -269,9 +278,12 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                 if (data && data.length > 0 && data[0]?.huyen_image !== '') {
                     if (data.length > 1) {
                         openNotification(true)(data, plans);
-                    } else {
                         dispatch(setPlansInfo(plans.filter((item) => item.id === data[0].id)));
                         searchPara.set('quyhoach', data[0].id.toString());
+                        setSearchPara(searchPara);
+                    } else {
+                        dispatch(setPlansInfo(plans.filter((item) => item.id === data[0].id)));
+                        searchPara.set('quyhoach', `${data[0].id}-${data[0].idProvince}`);
                         setSearchPara(searchPara);
                     }
                 } else {
@@ -293,7 +305,12 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
         (async () => {
             try {
                 const vitri = searchParams.get('vitri') ? searchParams.get('vitri').split(',') : null;
-                const quyhoachIds = searchParams.get('quyhoach') ? searchParams.get('quyhoach').split(',') : null;
+                const quyhoachIds = searchParams.get('quyhoach')
+                    ? searchParams
+                          .get('quyhoach')
+                          .split(',')
+                          .map((item) => item.split('-')[0])
+                    : null;
                 if (!!quyhoachIds) {
                     const allPlans = await fetchAllQuyHoach();
                     const map = {};
@@ -401,14 +418,18 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
     };
     const openNotification = (pauseOnHover) => (data, plans) => {
         api.open({
-            message: 'Notification Title',
+            message: 'Khu vực này có nhiều quy hoạch, vui lòng chọn quy hoạch để xem!',
             description: (
                 <Radio.Group
                     onChange={(e) => {
-                        dispatch(setPlansInfo(plans.filter((item) => item.id === data[0].id)));
+                        const target = plans.map((item) => item).filter((item) => item.id == e.target.value);
+                        dispatch(setPlansInfo(target));
+                        console.log(target, 'target');
+                        searchPara.set('quyhoach', `${e.target.value}-${target[0].idProvince}`);
+                        setSearchPara(searchPara);
                         api.destroy();
                     }}
-                    value={selectedIDQuyHoach}
+                    value={data[0].id}
                 >
                     {data.map((plan) => (
                         <Radio key={plan.id} value={plan.id}>
@@ -442,7 +463,10 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                 </Radio.Group>
             </Modal> */}
             <MapContainer
-                style={{ width: '100vw', height: 'calc(100% - 60px)' }}
+                style={{
+                    width: '100vw',
+                    height: windowSize.windowWidth > 768 ? 'calc(100vh - 60px)' : 'calc(100vh - 30%)',
+                }}
                 center={initialCenter}
                 zoom={initialZoom}
                 maxZoom={30}
@@ -493,6 +517,14 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                                 opacity={opacity}
                             />
                         ))}
+
+                    {/* <TileLayer
+                        url={`https://apilandinvest.gachmen.org/get_api_quyhoach/452/{z}/{x}/{y}`}
+                        pane="overlayPane"
+                        minZoom={1}
+                        maxZoom={22}
+                        opacity={opacity}
+                    /> */}
                     {/* {selectedIDQuyHoach && (
                         <TileLayer
                             url={`https://api.quyhoach.xyz/get_api_quyhoach/${selectedIDQuyHoach}/{z}/{x}/{y}`}
@@ -589,14 +621,14 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                         if (item.type === 'Polygon') {
                             return (
                                 <Polygon
-                                    positions={item.coordinates[0].map((coord) => [coord[1], coord[0]])}
+                                    positions={item.polygons[0].map((coord) => [coord[1], coord[0]])}
                                     color="pink"
                                     fillOpacity={0.5}
                                     fillColor="pink"
                                 />
                             );
                         } else if (item.type === 'MultiPolygon') {
-                            return item.coordinates.map((coordinates) => (
+                            return item.polygons.map((coordinates) => (
                                 <Polygon
                                     positions={coordinates[0].map((coord) => [coord[1], coord[0]])}
                                     color="pink"

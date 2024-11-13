@@ -150,10 +150,10 @@ function Home() {
     const handleClosePrice = () => {
         setIsShowModalPrice(false);
     };
-    const handleCloseQuyHoach = () => {
-        setIsShowModalQuyhoach(false);
-        setActiveItem(0);
-    };
+    // const handleCloseQuyHoach = () => {
+    //     setIsShowModalQuyhoach(false);
+    //     setActiveItem(0);
+    // };
     const [searchParams, setSearchParams] = useSearchParams();
     // const searchParams = new URLSearchParams(location.search);
     const handleBackToMyLocation = async () => {
@@ -345,11 +345,11 @@ function Home() {
                     locationInfo={provinceName}
                 />
 
-                <ModalQuyHoach
+                {/* <ModalQuyHoach
                     isShowModalQuyHoach={isShowModalQuyhoach}
                     handleCloseQuyHoach={handleCloseQuyHoach}
                     idDistrict={idDistrict}
-                />
+                /> */}
             </div>
             <Drawer
                 title={'Kho dữ liệu quy hoạch'}

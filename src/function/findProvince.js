@@ -4,6 +4,7 @@ import { API_KEYS_MAP, BASE_URL_API_MAP } from '../configs/apiKeyMap';
 import { getRandomIntegerBelow } from '../utils/getRandomIntegerBelow';
 
 const fetchProvinceName = async (lat, lon) => {
+    console.log(lat, lon, '0000000000');
     try {
         if (lat && lon) {
             const response = await axios.get(BASE_URL_API_MAP + '/geocode/reverse', {

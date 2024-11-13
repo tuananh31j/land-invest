@@ -20,14 +20,13 @@ import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { ActionIcon, HomeIcon, NewsIcon, SearchIcon, SearchNavbarIcon, NotificationIcon } from '../Icons';
 import fetchProvinceName from '../../function/findProvince';
 import useWindowSize from '../../hooks/useWindowSise';
-import { MenuOutlined } from '@ant-design/icons';
-import Search from 'antd/es/input/Search';
 
 const NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org/search?';
 const params = {
     format: 'json',
     addressdetails: 1,
     polygon_geojson: 1,
+    countrycodes: 'VN',
 };
 
 const iconAvatar =
@@ -269,8 +268,14 @@ const Header = () => {
                                         </button>
                                     ) : (
                                         <Dropdown menu={{ items }} trigger={['click']}>
-                                            <a
-                                                style={{ color: '#fff', cursor: 'pointer' }}
+                                            <button
+                                                style={{
+                                                    color: '#fff',
+                                                    cursor: 'pointer',
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    padding: 0,
+                                                }}
                                                 onClick={(e) => {
                                                     e.preventDefault();
                                                 }}
@@ -279,7 +284,7 @@ const Header = () => {
                                                     <Avatar src={apiUser?.avatarLink || iconAvatar} />
                                                     {apiUser?.FullName}
                                                 </Space>
-                                            </a>
+                                            </button>
                                         </Dropdown>
                                     )}
                                 </div>
@@ -293,14 +298,13 @@ const Header = () => {
                         style={{
                             background: '#262D34',
                             display: 'flex',
-                            justifyContent: 'space-between',
                             padding: '0 20px',
-                            itemAlign: 'baseline',
                             zIndex: 999999999999999,
+                            paddingY: '10px',
                         }}
-                        className="h-[70px] flex bg-[#262D34] items-baseline"
+                        className="h-[100%] flex  bg-[#262D34] items-center justify-between"
                     >
-                        <div className="">
+                        <div className="flex items-center py-3">
                             <img
                                 src={logo}
                                 width="30"
@@ -308,12 +312,15 @@ const Header = () => {
                                 className="d-inline-block align-top header-logo-img"
                                 alt="React Bootstrap logo"
                             />
-                            <span className="" style={{ color: 'orange', padding: '7px', fontWeight: '700' }}>
+                            <span
+                                className="text-[12px]"
+                                style={{ color: 'orange', padding: '7px', fontWeight: '700' }}
+                            >
                                 LAND INVEST
                             </span>
                         </div>
                         <div>
-                            <form className="header-search" onSubmit={handleSearchSubmit}>
+                            <form className="flex items-center" onSubmit={handleSearchSubmit}>
                                 <input
                                     type="text"
                                     placeholder="Tìm địa chỉ.."
@@ -329,7 +336,6 @@ const Header = () => {
                                 style={{
                                     position: 'fixed',
                                     backgroundColor: 'white',
-                                    borderTop: '1px solid #ff571a',
                                     borderRadius: 4,
                                     boxShadow: '#ff571a',
                                     zIndex: 999999999999999,
@@ -352,7 +358,7 @@ const Header = () => {
                         </div>
                     </div>
                     <div
-                        className=""
+                        className="py-4"
                         style={{
                             height: '5vh',
                             background: '#262D34',
@@ -380,13 +386,13 @@ const Header = () => {
                         </NavLink>
                         {!isAuthenticated ? (
                             <button
-                                className="nav-link"
+                                className="text-[12px]"
                                 style={{
                                     color: 'white',
-                                    padding: '1px',
                                     background: '#ff571a',
                                     borderRadius: '5px',
                                     border: '1px solid #ff571a',
+                                    frontSize: '',
                                 }}
                                 onClick={() => setIsShowModalLogin(true)}
                             >
@@ -394,7 +400,7 @@ const Header = () => {
                             </button>
                         ) : (
                             <Dropdown menu={{ items }} trigger={['click']}>
-                                <a
+                                <button
                                     style={{ color: '#fff', cursor: 'pointer' }}
                                     onClick={(e) => {
                                         e.preventDefault();
@@ -404,7 +410,7 @@ const Header = () => {
                                         <Avatar src={apiUser?.avatarLink || iconAvatar} />
                                         {apiUser?.FullName}
                                     </Space>
-                                </a>
+                                </button>
                             </Dropdown>
                         )}
                     </div>

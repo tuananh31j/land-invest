@@ -320,3 +320,7 @@ export const fetchAccount = async () => {
     const response = await instance.get('/api/listalluser');
     return response.data;
 };
+export const all_plans_by_province = async () => {
+    const response = await instance.get('/all_tinh_quyhoach');
+    return response.data;
+};

@@ -23,11 +23,13 @@ import Notification from './components/Notification/Notification';
 import AuctionInfor from './components/Auction/AuctionInfor';
 import LatestNews from './components/News/categorizeNews/LatestNews';
 import HotNews from './components/News/categorizeNews/HotNews';
+import useWindowSize from './hooks/useWindowSise.js';
 
 const Layout = () => {
+    const windowSize = useWindowSize();
     return (
         <div className="App" style={{}}>
-            <div className="app-header" style={{ maxHeight: '60px' }}>
+            <div className="app-header" style={{ maxHeight: windowSize.windowWidth > 768 ? '60px' : '30%' }}>
                 <Header />
             </div>
             <div className="app-content">
@@ -44,7 +46,7 @@ function App() {
         {
             path: '/',
             element: <Layout />,
-            errorElement: <NotFound />,
+            // errorElement: <NotFound />,
             children: [
                 {
                     index: true,

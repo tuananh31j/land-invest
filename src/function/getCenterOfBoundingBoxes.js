@@ -1,10 +1,10 @@
 function getCenterOfBoundingBoxes(boundingBoxes) {
-    let boundingTake;
-    if (boundingBoxes.length > 3) {
-        boundingTake = boundingBoxes.slice(-3);
-    } else {
-        boundingTake = boundingBoxes;
-    }
+    let boundingTake = boundingBoxes;
+    // if (boundingBoxes.length > 3) {
+    //     boundingTake = boundingBoxes.slice(-3);
+    // } else {
+    //     boundingTake = boundingBoxes;
+    // }
     const minLon = Math.min(...boundingTake.map((box) => box[0]));
     const minLat = Math.min(...boundingTake.map((box) => box[1]));
     const maxLon = Math.max(...boundingTake.map((box) => box[2]));
@@ -13,7 +13,8 @@ function getCenterOfBoundingBoxes(boundingBoxes) {
     // Tính trung điểm
     const centerLon = (minLon + maxLon) / 2;
     const centerLat = (minLat + maxLat) / 2;
-
+    console.log([centerLon, centerLat], 'centerLon, centerLat');
+    console.log(boundingTake, 'boundingTake');
     return [centerLon, centerLat];
 }
 

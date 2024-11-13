@@ -1,7 +1,12 @@
-import React, { useState, useEffect, memo, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, memo, useCallback } from 'react';
 import { Tree, Spin } from 'antd';
-import { fetchAllProvince, fetchAllQuyHoach, fetchDistrictsByProvinces } from '../../services/api';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import {
+    all_plans_by_province,
+    fetchAllProvince,
+    fetchAllQuyHoach,
+    fetchDistrictsByProvinces,
+} from '../../services/api';
+import { useSearchParams } from 'react-router-dom';
 import { useDebounce } from 'use-debounce';
 import removeAccents from 'remove-accents';
 import { LoadingOutlined } from '@ant-design/icons';
@@ -18,7 +23,9 @@ const TreeDirectory = () => {
     const quyHoachIdsStored = useSelector((state) => state.plansSelected.quyhoach);
     const [treeData, setTreeData] = useState([]);
     const [originalTreeData, setOriginalTreeData] = useState([]);
-    const [checkedKeys, setCheckedKeys] = useState(quyHoachIdsStored.map((item) => `plan-${item.id}`));
+    const [checkedKeys, setCheckedKeys] = useState(
+        quyHoachIdsStored.map((item) => `plan-${item.id}-${item.ProvinceID}`),
+    );
     const [expandedKeys, setExpandedKeys] = useState([]);
     const [autoExpandParent, setAutoExpandParent] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -28,18 +35,38 @@ const TreeDirectory = () => {
     const dispatch = useDispatch();
     const [searchParams, setSearchParams] = useSearchParams();
     const { query } = useTable();
+    const [allPlansByProvince, setAllPlansByProvince] = useState([]);
 
     useEffect(() => {
-        fetchProvinces();
-        const quyhoachParams = searchParams.get('quyhoach');
-        if (quyhoachParams) {
-            const quyhoachKeys = quyhoachParams.split(',').map((id) => `plan-${id}`);
-            setCheckedKeys(quyhoachKeys);
-        } else {
-            setCheckedKeys([]);
-            setPlansInfo([]);
-        }
-    }, [query, quyHoachIdsStored]);
+        (async () => {
+            await fetchProvinces();
+            const quyhoachParams = searchParams.get('quyhoach');
+            if (quyhoachParams) {
+                const quyhoachKeys = quyhoachParams.split(',').map((item) => {
+                    const [id, provinceId] = item.split('-');
+                    return `plan-${id}-${provinceId}`;
+                });
+                setCheckedKeys(quyhoachKeys);
+            } else {
+                setCheckedKeys([]);
+                setPlansInfo([]);
+            }
+        })();
+    }, []);
+
+    // update tree data to local storage
+    useEffect(() => {
+        (async () => {
+            const data = await all_plans_by_province(true);
+            setAllPlansByProvince(data);
+        })();
+    }, []);
+    // update tree data to local storage
+    useEffect(() => {
+        (async () => {
+            await fetchProvinces(true, true);
+        })();
+    }, []);
 
     useEffect(() => {
         if (debouncedSearchTerm) {
@@ -51,27 +78,39 @@ const TreeDirectory = () => {
         }
     }, [debouncedSearchTerm, originalTreeData]);
 
-    const fetchProvinces = async () => {
+    const fetchProvinces = async (isReload = false, noLoadingUI = false) => {
         try {
-            setLoading(true);
-            const provinces = await fetchAllProvince();
-            const provincesData = await Promise.all(
-                provinces.map(async (province) => {
-                    const districts = await fetchDistricts(province.TinhThanhPhoID);
-                    if (districts.length > 0) {
-                        return {
-                            title: province.TenTinhThanhPho,
-                            key: `province-${province.TinhThanhPhoID}`,
-                            children: districts,
-                            isLeaf: false,
-                        };
-                    }
-                    return null;
-                }),
-            );
-            const filteredProvincesData = provincesData.filter((province) => province !== null);
-            setTreeData(filteredProvincesData);
-            setOriginalTreeData(filteredProvincesData);
+            const treeDataStored = localStorage.getItem('treeData');
+
+            if (treeDataStored && !isReload) {
+                const filteredProvincesData = JSON.parse(treeDataStored);
+                setTreeData(filteredProvincesData);
+                setOriginalTreeData(filteredProvincesData);
+            } else {
+                setLoading(!noLoadingUI);
+                const provinces = await fetchAllProvince();
+                const provincesData = await Promise.all(
+                    provinces.map(async (province) => {
+                        const districts = await fetchDistricts(province.TinhThanhPhoID);
+                        if (districts.length > 0) {
+                            return {
+                                title: province.TenTinhThanhPho.toLowerCase()
+                                    .split(' ')
+                                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                                    .join(' '),
+                                key: `province-${province.TinhThanhPhoID}`,
+                                children: districts,
+                                isLeaf: false,
+                            };
+                        }
+                        return null;
+                    }),
+                );
+                const filteredProvincesData = provincesData.filter((province) => province !== null);
+                setTreeData(filteredProvincesData);
+                setOriginalTreeData(filteredProvincesData);
+                localStorage.setItem('treeData', JSON.stringify(filteredProvincesData));
+            }
         } catch (error) {
             console.error('Error fetching provinces:', error);
         } finally {
@@ -109,7 +148,7 @@ const TreeDirectory = () => {
             if (Array.isArray(data) && data.length > 0) {
                 return data.map((plan) => ({
                     title: plan.description,
-                    key: `plan-${plan.id}`,
+                    key: `plan-${plan.id}-${plan.ProvinceID}`,
                     isLeaf: true,
                 }));
             }
@@ -125,10 +164,18 @@ const TreeDirectory = () => {
             try {
                 if (!Array.isArray(checkedKeysValue)) return;
                 setCheckedKeys(checkedKeysValue);
-                console.log(checkedKeysValue, 'checkedKeysValue');
+                const provinceIds = checkedKeysValue
+                    .filter((key) => key?.startsWith('province-'))
+                    .map((key) => key?.split('-')[1]);
+
+                const plansParams = [];
                 const quyhoachIds = checkedKeysValue
                     .filter((key) => key?.startsWith('plan-'))
-                    .map((key) => key?.split('-')[1])
+                    .map((key) => {
+                        const item = key?.split('-');
+                        plansParams.push([item[1], item[2]].join('-'));
+                        return item[1];
+                    })
                     .filter((id) => id != null);
                 const districtIds = checkedKeysValue
                     .filter((key) => key?.startsWith('district-'))
@@ -145,35 +192,17 @@ const TreeDirectory = () => {
                             const key = `${element.idDistrict}-${element.idProvince}`;
                             map[key] = (map[key] || 0) + 1;
                         });
-                    // allPlans.filter((item) => {
-                    //     const key = `${item.idDistrict}-${item.idProvince}`;
-                    //     const hasManyPlan = map[key] > 1;
-                    //     const is2030 = item.description.toLowerCase().includes('2030');
-                    //     const isNotInMemory = !memory.includes(key);
-                    //     console.log(isNotInMemory, 'isNotInMemory');
-                    //     if (hasManyPlan && is2030) {
-                    //         return true;
-                    //     } else if (isNotInMemory) {
-                    //         memory.push(key);
-                    //         return true;
-                    //     }
-                    //     return false;
-                    // });
-
                     const plansFiltered = allPlans
                         .filter((item) => quyhoachIds.includes(item.id.toString()))
                         .filter((item) => {
                             const key = `${item.idDistrict}-${item.idProvince}`;
                             const hasManyPlan = map[key] > 1;
-                            console.log(item.description);
                             const is2030 = item.description.toLowerCase().includes('2030');
                             const isNotInMemory = !memory.includes(key);
                             if (hasManyPlan && is2030) {
-                                console.log('object');
                                 return true;
                             } else if (isNotInMemory) {
                                 memory.push(key);
-                                console.log('3333');
                                 return true;
                             }
                             return false;
@@ -184,10 +213,7 @@ const TreeDirectory = () => {
                         .map((item) => {
                             return item.boundingbox.replace(/[\[\]]/g, '').split(',');
                         })
-                        .filter((item) => item != null);
-                    console.log(plansFiltered, 'plansFiltered');
-                    console.log(allPlans, 'allPlans');
-                    console.log(boudingBoxes, 'boudingBoxes');
+                        .filter((item) => item != null && Array.isArray(item) && item.length === 4);
                     const center = getCenterOfBoundingBoxes(boudingBoxes);
                     const info = await fetchProvinceName(center[1], center[0]);
                     console.log(info, 'info');
@@ -201,9 +227,11 @@ const TreeDirectory = () => {
                         }),
                     );
                     dispatch(setPlansInfo(plansFiltered));
+                    setCheckedKeys(plansFiltered.map((item) => `plan-${item.id}-${item.ProvinceID}`));
+                    console.log(plansFiltered, 'plansFiltered');
 
                     searchParams.delete('quyhoach');
-                    searchParams.set('quyhoach', quyhoachIds.toString());
+                    searchParams.set('quyhoach', plansParams.toString());
                     setSearchParams(searchParams);
                 } else {
                     searchParams.delete('quyhoach');
@@ -211,7 +239,7 @@ const TreeDirectory = () => {
                     dispatch(setPlansInfo([]));
                 }
             } catch (error) {
-                console.log(error, '4444444');
+                console.log(error, '111111111');
             }
         },
         [dispatch, searchParams, setSearchParams],
