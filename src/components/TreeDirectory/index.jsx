@@ -54,7 +54,6 @@ const TreeDirectory = () => {
         })();
     }, []);
 
-    // update tree data to local storage
     useEffect(() => {
         (async () => {
             const data = await all_plans_by_province(true);
@@ -62,11 +61,32 @@ const TreeDirectory = () => {
         })();
     }, []);
     // update tree data to local storage
-    useEffect(() => {
-        (async () => {
-            await fetchProvinces(true, true);
-        })();
-    }, []);
+    // useEffect(() => {
+    //     (async () => {
+    //         const provinces = await fetchAllProvince();
+    //         const provincesData = await Promise.all(
+    //             provinces.map(async (province) => {
+    //                 const districts = await fetchDistricts(province.TinhThanhPhoID);
+    //                 if (districts.length > 0) {
+    //                     return {
+    //                         title: province.TenTinhThanhPho.toLowerCase()
+    //                             .split(' ')
+    //                             .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    //                             .join(' '),
+    //                         key: `province-${province.TinhThanhPhoID}`,
+    //                         children: districts,
+    //                         isLeaf: false,
+    //                     };
+    //                 }
+    //                 return null;
+    //             }),
+    //         );
+    //         const filteredProvincesData = provincesData.filter((province) => province !== null);
+    //         setTreeData(filteredProvincesData);
+    //         setOriginalTreeData(filteredProvincesData);
+    //         sessionStorage.setItem('treeData', JSON.stringify(filteredProvincesData));
+    //     })();
+    // }, []);
 
     useEffect(() => {
         if (debouncedSearchTerm) {
@@ -78,16 +98,16 @@ const TreeDirectory = () => {
         }
     }, [debouncedSearchTerm, originalTreeData]);
 
-    const fetchProvinces = async (isReload = false, noLoadingUI = false) => {
+    const fetchProvinces = async () => {
         try {
-            const treeDataStored = localStorage.getItem('treeData');
+            const treeDataStored = sessionStorage.getItem('treeData') ? sessionStorage.getItem('treeData') : null;
 
-            if (treeDataStored && !isReload) {
+            if (!!treeDataStored) {
                 const filteredProvincesData = JSON.parse(treeDataStored);
                 setTreeData(filteredProvincesData);
                 setOriginalTreeData(filteredProvincesData);
             } else {
-                setLoading(!noLoadingUI);
+                setLoading(true);
                 const provinces = await fetchAllProvince();
                 const provincesData = await Promise.all(
                     provinces.map(async (province) => {
@@ -109,7 +129,7 @@ const TreeDirectory = () => {
                 const filteredProvincesData = provincesData.filter((province) => province !== null);
                 setTreeData(filteredProvincesData);
                 setOriginalTreeData(filteredProvincesData);
-                localStorage.setItem('treeData', JSON.stringify(filteredProvincesData));
+                sessionStorage.setItem('treeData', JSON.stringify(filteredProvincesData));
             }
         } catch (error) {
             console.error('Error fetching provinces:', error);
@@ -148,7 +168,7 @@ const TreeDirectory = () => {
             if (Array.isArray(data) && data.length > 0) {
                 return data.map((plan) => ({
                     title: plan.description,
-                    key: `plan-${plan.id}-${plan.ProvinceID}`,
+                    key: `plan-${plan.id}-${plan.idProvince}`,
                     isLeaf: true,
                 }));
             }
@@ -187,7 +207,7 @@ const TreeDirectory = () => {
                     const map = {};
                     const memory = [];
                     allPlans
-                        .filter((item) => quyhoachIds.includes(item.id.toString()))
+                        .filter((item) => quyhoachIds.toString().includes(item.id.toString()))
                         .forEach((element) => {
                             const key = `${element.idDistrict}-${element.idProvince}`;
                             map[key] = (map[key] || 0) + 1;
@@ -227,8 +247,9 @@ const TreeDirectory = () => {
                         }),
                     );
                     dispatch(setPlansInfo(plansFiltered));
-                    setCheckedKeys(plansFiltered.map((item) => `plan-${item.id}-${item.ProvinceID}`));
                     console.log(plansFiltered, 'plansFiltered');
+                    setCheckedKeys(plansFiltered.map((item) => `plan-${item.id}-${item.idProvince}`));
+                    console.log(plansParams, 'plansFiltered');
 
                     searchParams.delete('quyhoach');
                     searchParams.set('quyhoach', plansParams.toString());

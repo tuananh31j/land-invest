@@ -279,7 +279,7 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                     if (data.length > 1) {
                         openNotification(true)(data, plans);
                         dispatch(setPlansInfo(plans.filter((item) => item.id === data[0].id)));
-                        searchPara.set('quyhoach', data[0].id.toString());
+                        searchPara.set('quyhoach', `${data[0].id}-${data[0].idProvince}`);
                         setSearchPara(searchPara);
                     } else {
                         dispatch(setPlansInfo(plans.filter((item) => item.id === data[0].id)));

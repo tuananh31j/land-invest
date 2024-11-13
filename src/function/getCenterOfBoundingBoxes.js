@@ -1,10 +1,10 @@
 function getCenterOfBoundingBoxes(boundingBoxes) {
     let boundingTake = boundingBoxes;
-    // if (boundingBoxes.length > 3) {
-    //     boundingTake = boundingBoxes.slice(-3);
-    // } else {
-    //     boundingTake = boundingBoxes;
-    // }
+    if (boundingBoxes.length > 3) {
+        boundingTake = boundingBoxes.slice(-3);
+    } else {
+        boundingTake = boundingBoxes;
+    }
     const minLon = Math.min(...boundingTake.map((box) => box[0]));
     const minLat = Math.min(...boundingTake.map((box) => box[1]));
     const maxLon = Math.max(...boundingTake.map((box) => box[2]));
