@@ -1,15 +1,5 @@
 import React, { memo, useEffect, useState } from 'react';
-import {
-    MapContainer,
-    TileLayer,
-    Marker,
-    Popup,
-    useMapEvents,
-    Polygon,
-    LayersControl,
-    Pane,
-    Polyline,
-} from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polygon, LayersControl, Pane } from 'react-leaflet';
 import L from 'leaflet';
 import DrawerView from '../Home/DrawerView';
 import fetchProvinceName from '../../function/findProvince';
@@ -45,8 +35,6 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
     const [idProvince, setIdProvince] = useState();
     const [selectedMarker, setSelectedMarker] = useState(null);
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
-    const [selectedIDQuyHoach, setSelectedIDQuyHoach] = useState(null);
-    const [planOption, setPlanOption] = useState([]);
     const searchParams = useGetParams();
     const locationLink = useLocation();
     const dispatch = useDispatch();
@@ -58,30 +46,7 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
     const { initialCenter, initialZoom } = useMapParams();
     const windowSize = useWindowSize();
     const [searchPara, setSearchPara] = useSearchParams();
-    // useEffect(() => {
-    //     const searchParams = new URLSearchParams(locationLink.search);
-    //     const vitri = searchParams.get('vitri');
-    //     vitri && vitri.length > 0 && setPosition(vitri.split(',').map(Number));
-    // }, [locationLink.search]);
 
-    // useEffect(() => {
-    //     if (position.length === 2) {
-    //         const map = document.querySelector('.leaflet-container')?.leafletElement;
-    //         if (map) {
-    //             map.setView(position);
-    //         }
-    //     }
-    // }, [position]);
-
-    // useEffect(() => {
-    //     if (!boundingSessionStorage) {
-    //         const bounding = JSON.parse(boundingSessionStorage);
-    //         const map = document.querySelector('.leaflet-container')?.leafletElement;
-    //         if (map) {
-    //             map.fitBounds(bounding);
-    //         }
-    //     }
-    // }, []);
     const closeDrawer = () => setIsDrawerVisible(false);
 
     const MapEvents = () => {
@@ -150,126 +115,7 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
 
         return null;
     };
-    // useEffect(() => {
-    //     const newQuyhoachIds =
-    //         new URLSearchParams(locationLink.search)
-    //             .get('quyhoach')
-    //             ?.split(',')
-    //             .map((id) => parseInt(id, 10)) || [];
 
-    //     setQuyhoachIds(newQuyhoachIds);
-    // }, [locationLink.search]);
-
-    useEffect(() => {
-        // (async () => {
-        //     try {
-        //         // if (false) {
-        //         //     console.log(polygonSessionStorage, 'polygonSessionStorage');
-        //         // } else {
-        //         //     const allPlans = await fetchAllQuyHoach();
-        //         //     const provinces = await fetchAllProvince();
-        //         //     const datasProvinceAndDistrict = await Promise.all(
-        //         //         provinces.map(async (province) => {
-        //         //             const district = await fetchDistrictsByProvinces(province.TinhThanhPhoID);
-        //         //             if (district.length > 0) {
-        //         //                 return district.map((item) => {
-        //         //                     return { ...item, provinceName: province.TenTinhThanhPho };
-        //         //                 });
-        //         //             }
-        //         //             return null;
-        //         //         }),
-        //         //     );
-        //         //     const test = datasProvinceAndDistrict
-        //         //         .flat()
-        //         //         .filter((item) => item !== null)
-        //         //         .map((item) => {
-        //         //             const isExist = allPlans.some(
-        //         //                 (plan) =>
-        //         //                     plan.idProvince === item.TinhThanhPhoID && plan.idDistrict === item.districtId,
-        //         //             );
-        //         //             if (isExist) {
-        //         //                 return item;
-        //         //             }
-        //         //             return null;
-        //         //         })
-        //         //         .filter((item) => item !== null);
-        //         //     console.log(test, 'test');
-        //         //     console.log(datasProvinceAndDistrict, 'datasProvinceAndDistrict');
-        //         //     const tes = [];
-        //         //     const dataSearch = provinces
-        //         //         .flat()
-        //         //         .filter((item) => item !== null)
-        //         //         .map((item) => {
-        //         //             const isExist = allPlans.some((plan) => plan.idProvince === item.TinhThanhPhoID);
-        //         //             if (isExist) {
-        //         //                 return item;
-        //         //             }
-        //         //             tes.push(item);
-        //         //             return null;
-        //         //         })
-        //         //         .filter((item) => item !== null);
-        //         //     console.log(tes, 'tes');
-        //         //     const ids = await getIdsProvinceByBoundingCenter(dataSearch);
-        //         //     console.log(dataSearch, 'dataSearch');
-        //         //     const boundaries = await getBoundaries(Array.from(new Set(ids)));
-        //         //     const stored = [];
-        //         //     if (boundaries) {
-        //         //         // for (let i = 0; i < boundaries.length; i++) {
-        //         //         //     let memory = [];
-        //         //         //     let hasMerged = true;
-        //         //         //     const handleMergePolygon = (boundaries) => {
-        //         //         //         const mergedPolygons = boundaries.reduce((acc, polygon, i) => {
-        //         //         //             if (!acc) return polygon;
-        //         //         //             if (turf.booleanContains(acc, polygon)) {
-        //         //         //                 boundaries.splice(i, 1);
-        //         //         //                 hasMerged = true;
-        //         //         //                 return turf.union(acc, polygon);
-        //         //         //             } else {
-        //         //         //                 memory.push(polygon);
-        //         //         //                 return acc;
-        //         //         //             }
-        //         //         //         }, null);
-        //         //         //         return mergedPolygons;
-        //         //         //     };
-        //         //         //     if (hasMerged) {
-        //         //         //         hasMerged = false;
-        //         //         //         const item = handleMergePolygon(boundaries);
-        //         //         //         stored.push(item);
-        //         //         //     }
-        //         //         //     if (!hasMerged) {
-        //         //         //         stored.push(...memory);
-        //         //         //         return stored;
-        //         //         //     }
-        //         //         // }
-        //         //         console.log(ids, 'ids');
-        //         //         sessionStorage.setItem('polygons', JSON.stringify(boundaries));
-        //         //         console.log(boundaries, 'boundaries');
-        //         //         dispatch(setPolygons(boundaries));
-        //         //     }
-        //         // }
-        //     } catch (error) {
-        //         console.log(error, '11111111111111111');
-        //     }
-        // })();
-        // setPolygons(polygonsData)
-    }, []);
-
-    // useEffect(() => {
-    //     setPolygons(
-    //         coordinates && coordinates.length > 0 && Array.isArray(coordinates[0])
-    //             ? coordinates[0].map((coord) => [coord[1], coord[0]])
-    //             : null,
-    //     );
-    // }, [coordinates]);
-
-    // // Get plan id by district id
-
-    // useEffect(() => {
-    //     (async () => {
-    //         const res = await fetchAllQuyHoach();
-    //         setList(res);
-    //     })();
-    // }, []);
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -290,11 +136,9 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                     if (idDistrict && listenDblClick) {
                         messageApi.info('Không tìm thấy quy hoạch cho khu vực này');
                     }
-                    setSelectedIDQuyHoach(null);
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
-                setSelectedIDQuyHoach(null);
             }
         };
 

@@ -6,7 +6,7 @@ import TreeDirectory from '../../TreeDirectory';
 import useTableListOpen from '../../../hooks/useTableListOpen';
 import useWindowSize from '../../../hooks/useWindowSise';
 
-const ModalDownMenu = ({ handleClose, show }) => {
+const ModalDownMenu = ({ handleClose, show, doRefreshTreeData, isRefreshTreeData }) => {
     const [disabled, setDisabled] = useState(true);
     const { handleOpenTableList } = useTableListOpen();
     const handleOpenTable = () => {
@@ -61,6 +61,8 @@ const ModalDownMenu = ({ handleClose, show }) => {
                         textAlign: 'center',
                         fontWeight: 700,
                         fontSize: '24px',
+                        display: 'flex',
+                        gap: '10px',
                     }}
                     onMouseOver={() => {
                         if (disabled) {
@@ -73,13 +75,16 @@ const ModalDownMenu = ({ handleClose, show }) => {
                     onFocus={() => {}}
                     onBlur={() => {}}
                 >
-                    Danh Sách Quy Hoạch{' '}
+                    <span>Danh Sách Quy Hoạch</span>
                     {windowSize.windowWidth > 768 && <Button onClick={handleOpenTable}>Mở rộng</Button>}
+                    <Button type="dashed" onClick={doRefreshTreeData}>
+                        Tải lại
+                    </Button>
                 </div>
             }
         >
             <div className="menu__container">
-                <TreeDirectory />
+                <TreeDirectory isRefreshTreeData={isRefreshTreeData} doRefreshTreeData={doRefreshTreeData} />
             </div>
         </Modal>
     );

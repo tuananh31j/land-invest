@@ -5,6 +5,8 @@ import { Button, Input, Space } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 import slugify from 'slugify';
+import { useDispatch } from 'react-redux';
+import { setPlansInfo } from '../redux/plansSelected/plansSelected';
 
 const removeVietnameseTones = (str) => slugify(str, { replacement: '', lower: true, locale: 'vi' });
 const convertObject = (inputObj) => {
@@ -29,6 +31,7 @@ const useTable = () => {
     const [searchedColumn, setSearchedColumn] = useState('');
     const { query, updateQueryParam, reset } = useFilter();
     const searchInput = useRef(null);
+    const dispatch = useDispatch();
 
     const handleSearch = (selectedKeys, confirm, dataIndex) => {
         confirm();
@@ -39,6 +42,7 @@ const useTable = () => {
         setSearchText('');
         setSearchedColumn('');
         reset();
+        dispatch(setPlansInfo([]));
     };
 
     const getSortedInfo = (key) => {
@@ -52,8 +56,6 @@ const useTable = () => {
     };
 
     const getFilteredValue = (key) => {
-        console.log(key, 'key');
-        console.log(query, 'query', 'key');
         return query[key] ? query[key].split(',') : undefined;
         // return [];
     };
@@ -76,7 +78,6 @@ const useTable = () => {
                 sortParams = `-${sortColumKey}`;
             }
         }
-        console.log({ ...query, ...filterParams, sort: sortParams, page: String(page) }, 'filterParams');
         updateQueryParam({ ...query, ...filterParams, sort: sortParams, page: String(page) });
     };
 

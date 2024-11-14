@@ -59,10 +59,10 @@ function Home() {
     const myLoca = useGetMyLocation();
     const [messageApi, contextHolder] = message.useMessage();
     const { districtName, provinceName } = useSelector((state) => state.searchQuery.searchResult);
-    const { resetFilter } = useTable();
     const mapRef = useRef();
     const location = useLocation();
     const windowSize = useWindowSize();
+    const [isRefreshTreeData, setIsRefreshTreeData] = useState(false);
 
     // useEffect(() => {
     //     const searchParams = new URLSearchParams(location.search);
@@ -85,6 +85,13 @@ function Home() {
     //   }, [location.search]);
 
     // const {  displayName } = useSelector((state) => state.searchQuery.searchResult);
+    const doRefreshTreeData = (value) => {
+        if (value) {
+            setIsRefreshTreeData(!isRefreshTreeData);
+        } else {
+            setIsRefreshTreeData(value);
+        }
+    };
 
     const handleShareClick = () => {
         const urlParams = new URLSearchParams(location.search);
@@ -325,7 +332,12 @@ function Home() {
                     />
                 )}
 
-                <ModalDownMenu show={isModalVisible} handleClose={handleModalClose} />
+                <ModalDownMenu
+                    show={isModalVisible}
+                    handleClose={handleModalClose}
+                    isRefreshTreeData={isRefreshTreeData}
+                    doRefreshTreeData={doRefreshTreeData}
+                />
                 <ModalPriceFilter showPrice={isShowModalPrice} handleClosePrice={handleClosePrice} />
 
                 {/* upload Image */}
