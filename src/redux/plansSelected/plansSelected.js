@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
     quyhoach: [],
+    quyhoachByProvince: [],
 };
 
 export const searchQuery = createSlice({
@@ -11,8 +12,11 @@ export const searchQuery = createSlice({
         setPlansInfo: (state, action) => {
             state.quyhoach = action.payload;
         },
+        setPlanByProvince: (state, action) => {
+            state.quyhoachByProvince = action.payload;
+        },
     },
 });
 
-export const { setPlansInfo } = searchQuery.actions;
+export const { setPlansInfo, setPlanByProvince } = searchQuery.actions;
 export default searchQuery;

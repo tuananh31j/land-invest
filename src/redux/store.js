@@ -9,6 +9,8 @@ import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, 
 import storage from 'redux-persist/lib/storage';
 import listGroupReducer from './getId/getIDSlice';
 import setPolygonsReducer from './polygonSlice/polygonSlice';
+import treePlans from './apiCache/treePlans';
+import allPlansByProvinceSlice from './apiCache/allPlansByProvinceSlice';
 import filterSliceTable from './filterSliceTable/filterSliceTable';
 import plansSelected from './plansSelected/plansSelected';
 import { planTableExtend } from './planTableExtend/planTableExtend';
@@ -33,6 +35,8 @@ const rootReducer = combineReducers({
     filterSliceTable: filterSliceTable.reducer,
     planTableExtend: planTableExtend.reducer,
     plansSelected: plansSelected.reducer,
+    treePlans: treePlans,
+    allPlansByProvinceSlice: allPlansByProvinceSlice,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

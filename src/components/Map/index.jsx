@@ -12,14 +12,20 @@ import { setListMarker } from '../../redux/listMarker/listMarkerSllice';
 import useMapParams from '../../hooks/useMapParams';
 import { FaShareAlt } from 'react-icons/fa';
 import { message, notification, Radio } from 'antd';
-import { fetchAllQuyHoach, fetchListInfo, fetQuyHoachByIdDistrict, searchLocation } from '../../services/api';
+import {
+    fetchAllQuyHoach,
+    fetchListInfo,
+    fetQuyHoachByIdDistrict,
+    getALLPlansByProvince,
+    searchLocation,
+} from '../../services/api';
 import useGetParams from '../Hooks/useGetParams';
 import { setCurrentLocation } from '../../redux/search/searchSlice';
 import UserLocationMarker from '../UserLocationMarker';
 import { debounce } from 'lodash';
 import { polygonsData } from '../../data/polygons';
 import getCenterOfBoundingBoxes from '../../function/getCenterOfBoundingBoxes';
-import { setPlansInfo } from '../../redux/plansSelected/plansSelected';
+import { setPlanByProvince, setPlansInfo } from '../../redux/plansSelected/plansSelected';
 import useWindowSize from '../../hooks/useWindowSise';
 
 const customIcon = new L.Icon({
@@ -43,10 +49,10 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
     const [messageApi, contextHolder] = message.useMessage();
     const [api, contextHolderNoti] = notification.useNotification();
     const plansStored = useSelector((state) => state.plansSelected.quyhoach);
+    const quyhoachByProvince = useSelector((state) => state.plansSelected.quyhoachByProvince);
     const { initialCenter, initialZoom } = useMapParams();
     const windowSize = useWindowSize();
     const [searchPara, setSearchPara] = useSearchParams();
-
     const closeDrawer = () => setIsDrawerVisible(false);
 
     const MapEvents = () => {
@@ -149,12 +155,19 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
         (async () => {
             try {
                 const vitri = searchParams.get('vitri') ? searchParams.get('vitri').split(',') : null;
-                const quyhoachIds = searchParams.get('quyhoach')
-                    ? searchParams
-                          .get('quyhoach')
-                          .split(',')
-                          .map((item) => item.split('-')[0])
+                const quyhoachIds = searchParams.get('quyhoach');
+                const allPlansByProvince = await getALLPlansByProvince();
+                const plansByProvince = searchParams.get('plans-by-province')
+                    ? searchParams.get('plans-by-province').split(',')
                     : null;
+                if (!!plansByProvince) {
+                    const plansByProvinceFiltered = allPlansByProvince.filter((item) =>
+                        plansByProvince.includes(item.idProvince.toString()),
+                    );
+                    dispatch(setPlanByProvince(plansByProvinceFiltered));
+                } else {
+                    dispatch(setPlanByProvince([]));
+                }
                 if (!!quyhoachIds) {
                     const allPlans = await fetchAllQuyHoach();
                     const map = {};
@@ -238,6 +251,13 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
 
         fetchData();
     }, [idProvince]);
+
+    // useEffect(() => {
+    //     (async () => {
+    //         const data = await getALLPlansByProvince();
+    //         setAllPlansByProvince(data);
+    //     })();
+    // }, []);
     const handleShareClick = (lat, lng) => {
         const urlParams = new URLSearchParams(locationLink.search);
 
@@ -352,6 +372,18 @@ const Map = ({ opacity, mapRef, setSelectedPosition, setIdDistrict, idDistrict }
                     {plansStored &&
                         plansStored.length > 0 &&
                         plansStored.map((item, index) => (
+                            <TileLayer
+                                key={index}
+                                url={`${item.huyen_image}/{z}/{x}/{y}`}
+                                pane="overlayPane"
+                                minZoom={1}
+                                maxZoom={22}
+                                opacity={opacity}
+                            />
+                        ))}
+                    {quyhoachByProvince &&
+                        quyhoachByProvince.length > 0 &&
+                        quyhoachByProvince.map((item, index) => (
                             <TileLayer
                                 key={index}
                                 url={`${item.huyen_image}/{z}/{x}/{y}`}

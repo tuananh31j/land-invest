@@ -77,9 +77,6 @@ const ModalDownMenu = ({ handleClose, show, doRefreshTreeData, isRefreshTreeData
                 >
                     <span>Danh Sách Quy Hoạch</span>
                     {windowSize.windowWidth > 768 && <Button onClick={handleOpenTable}>Mở rộng</Button>}
-                    <Button type="dashed" onClick={doRefreshTreeData}>
-                        Tải lại
-                    </Button>
                 </div>
             }
         >
